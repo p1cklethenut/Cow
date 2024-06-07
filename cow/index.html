@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/x-icon" href="/cowcur.png" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>CowTube</title>
+
+    <!-- Bootstrap icons-->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      body {
+        user-select: none;
+        cursor: url("/cowcur.png"), default !important;
+      }
+      .cowparticle {
+        position: absolute;
+      }
+      .cowbtn {
+
+        cursor: url("/cowcur.png"), default !important;
+        user-select: none;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        max-width: 200px;
+
+        transition: width 0.4s ease; /* Duration: 3 seconds with an ease timing function */
+      }
+
+      .cowbtn img {
+        width: 100%;
+        max-width: 200px;
+      }
+      .gradient-border-mask {
+        border: 3px solid transparent;
+        border-radius: 30px;
+
+        background-image: linear-gradient(white, white),
+          linear-gradient(to right, #b7b3f5, #b47aff);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+      }
+    </style>
+  </head>
+  <body class="d-flex flex-column">
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="userchangemodal"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">
+              Change Username
+            </h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <h3>
+              Note that data will only be saved if you contribute at least one
+              cow.
+            </h3>
+            <div class="input-group">
+              <input
+                id="usernamechangebox"
+                type="text"
+                class="form-control"
+                placeholder="username"
+              />
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                id="savebtn"
+                onclick="savenewuser()"
+              >
+                save
+              </button>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <main class="flex-shrink-0">
+      <!-- Navigation-->
+      <nav
+        class="sticky-top navbar navbar-expand-lg navbar-light bg-white border py-3"
+      >
+        <div class="container px-2">
+          <a class="navbar-brand" href="https://www.amazon.sg/MINISO-Stuffed-Plushies-Birthday-Christmas/dp/B09DYTKT22"
+            ><span class="fw-bolder" style="color: #b41aff; font-size: 30px"
+              >CowTube</span
+            ></a
+          >
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 small fw-bolder">
+              <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+              <li class="nav-item">
+                <a class="nav-link" href="/leaderboard">leaderboard</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/rollcow">rollcow (api)</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      <!-- Header-->
+      <header class="pt-3 pb-5">
+        <div class="gradient-border-mask container p-5">
+          <h4
+            id="user"
+            class="d-inline-flex fw-bold"
+            style="
+              font-size: 20px;
+              background: -webkit-linear-gradient(right top, #b7b3f5, #b41aff);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+            "
+          >
+            <span class="placeholder-wave">
+              <span class="placeholder" style="width: 200px"> </span>
+            </span>
+          </h4>
+          <!-- Button trigger modal -->
+          <button
+            type="button"
+            class="btn p-0 m-0"
+            data-bs-toggle="modal"
+            data-bs-target="#userchangemodal"
+          >
+            <svg
+              style="color: #b41aff"
+              class="feather feather-edit"
+              fill="none"
+              height="20"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+              />
+              <path
+                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+              />
+            </svg>
+          </button>
+          <br />
+          <h1
+            id="num"
+            class="d-inline-flex fw-bold"
+            style="
+              font-size: 50px;
+              background: -webkit-linear-gradient(right top, #b7b3f5, #b41aff);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+            "
+          >
+            <span class="placeholder-wave">
+              <span class="placeholder" style="width: 200px"> </span>
+            </span>
+          </h1>
+          <h2
+            id="selfnum"
+            class=""
+            style="
+              font-size: 30px;
+              background: -webkit-linear-gradient(right top, #b7b3f5, #b47aff);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+            "
+          >
+            <span class="placeholder-wave">
+              <span class="placeholder" style="width: 250px"> </span>
+            </span>
+          </h2>
+
+          <div style="height: 250px" class="row gx-5 align-items-center">
+            <!-- Header text content-->
+
+            <div class="text-center text-xxl-start">
+              <div class="fs-3 fw-light text-muted">
+                <button
+                  tabindex="-1"
+                  id="cowbtn"
+                  class="cowbtn border border-0 bg-transparent"
+                  onclick="clicked()"
+                >
+                  <img id="cowimg" class="cowimg" src="/cow.png" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      <hr class="m" />
+      <footer class="d-inline-flex footer fw-light my-1 container-fluid">
+        <p class="container-fluid">cowtube v1</p>
+        <p id="uuid" class="text-end container-fluid">
+          <span class="placeholder-wave">
+            <span class="placeholder" style="width: 100px"> </span>
+          </span>
+        </p>
+      </footer>
+    </main>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
