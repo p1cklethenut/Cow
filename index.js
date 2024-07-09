@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 const express = require("express");
 
 const app = express();
@@ -6,13 +8,18 @@ const io = require("socket.io")(http);
 const url = process.env["db"];
 let dataobj = {clicks:0,users:{}};
 let connections = {}; //to track and update clients
+let devlog = "Cowtube devlog";
 app.use(express.json());
 app.get("/*", (req, res) => {
   switch (req.url) {
     case "/":
-      res.sendFile(__dirname + "/cow/index.html");
-      break;
+      if(Date.now()<1720763299552){
+        res.send("listen in class")
+      }else{
 
+        res.sendFile(__dirname + "/cow/index.html");
+      }
+      break;
     case "/script.js":
       res.sendFile(__dirname + "/cow/script.js");
       break;
@@ -80,10 +87,75 @@ app.post("/*", (req, res) => {
     case "/cowtubeapi":
       ytapi(req, res);
       break;
+    case "/console":
+      admin(req,res)
+      break;
     default:
       res.send("404");
   }
 });
+
+function admin(req,res){
+  if(req.body.pass == process.env["pass"]){
+    switch(req.body.cmd){
+      case "changecow":
+        dataobj.users[req.body.id].cows += parseInt(req.body.value);
+        dataobj.clicks += parseInt(req.body.value)
+        for(let i=0;i<connections[req.body.id].length;i++){
+          let total = dataobj.clicks;
+          let self = dataobj.users[req.body.id].cows;
+          io.to(connections[req.body.id][i]).emit("number", {
+            total: total,
+            self: self,
+            id: req.body.id,
+            name: dataobj.users[req.body.id].name,
+          });
+
+          
+        }
+        res.send(`incremented ${req.body.id} cows by ${req.body.value}`)
+        
+        break ;
+      case "changename":
+        dataobj.users[req.body.id].name = req.body.value;
+        res.send(`changed ${req.body.id} name to ${req.body.value}`)
+        for(let i=0;i<connections[req.body.id].length;i++){
+          io.to(connections[req.body.id][i]).emit("newusername", { name: dataobj.users[req.body.id].name });
+        }
+        break;
+      case "setcow":
+        dataobj.clicks += parseInt(req.body.value)-dataobj.users[req.body.id].cows;
+        dataobj.users[req.body.id].cows = parseInt(req.body.value);
+        for(let i=0;i<connections[req.body.id].length;i++){
+          let total = dataobj.clicks;
+          let self = dataobj.users[req.body.id].cows;
+          io.to(connections[req.body.id][i]).emit("number", {
+            total: total,
+            self: self,
+            id: req.body.id,
+            name: dataobj.users[req.body.id].name,
+          });
+
+
+        }
+        res.send(`set ${req.body.id} cows to ${req.body.value}`)
+        break;
+      case "sendmsg":
+        if(connections[req.body.id]){
+          for(let i=0;i<connections[req.body.id].length;i++){
+            io.to(connections[req.body.id][i]).emit("msg", req.body.value);
+          }
+
+        }
+        res.send(`sent ${req.body.id}: ${req.body.value}`)
+        break;
+      default:
+        res.send("?");
+    }
+  }else{
+    res.send("wrong pass")
+  }
+}
 
 async function getnews(res){
   var url = 'https://newsapi.org/v2/top-headlines?' +
@@ -198,7 +270,7 @@ function socketSetup() {
       if (!id || dataobj.users[id]=== undefined) {
         let isdupe = true;
         while (isdupe) {
-          id = Math.floor(10000000 + Math.random() * 90000000).toString();
+          id = Math.floor(10000000 + random() * 90000000).toString();
           if (!Object.keys(dataobj.users).includes(id)) {
             isdupe = false;
           }
@@ -218,6 +290,9 @@ function socketSetup() {
       io.to(socket_client_id).emit("leaderboard", {
         lb: leaderboardpos,
       });
+      io.to(socket_client_id).emit("devlog", 
+        devlog,
+      );
       if (connections[id]) {
         if (!connections[id].includes(socket_client_id)) {
           connections[id].push(socket_client_id);
@@ -227,9 +302,39 @@ function socketSetup() {
       }
       connection_client_id = id;
       console.log(`connections: ${JSON.stringify(connections, null, 2)}`);
+      
     });
+    socket.on("autoclicker",(data)=>{
+      console.log("Autoclicker detected: "+JSON.stringify(data))
+    })
+    socket.on("claimdrop",(data)=>{
+      let id = data.id;
+      let toclaim = data.toclaim;
+      if(dataobj.users[id]&&typeof(data.toclaim)=="number"){
+        //console.log(data)
+        dataobj.users[id].cows += data.toclaim
+        dataobj.clicks += data.toclaim
+      }
 
+      let total = dataobj.clicks;
+      let self = dataobj.users[id].cows;
+      io.to(socket_client_id).emit("number", {
+        total: total,
+        self: self,
+        id: id,
+        name: dataobj.users[id].name,
+      });
+    })
     socket.on("clicked", (data) => {
+
+      if(data.vers){
+        if(data.vers!=vers)
+        {
+          io.to(socket_client_id).emit("refresh", "Outdated client, refreshing");
+        }
+      }else{
+      io.to(socket_client_id).emit("refresh", "Outdated client, refreshing");
+      }
       //console.log("clicked: "+JSON.stringify(data));
       let id = data.id;
       let clicks = data.clicks;
@@ -237,7 +342,7 @@ function socketSetup() {
       if (!Object.keys(dataobj.users).includes(id)) {
         let isdupe = true;
         while (isdupe) {
-          id = Math.floor(10000000 + Math.random() * 90000000).toString();
+          id = Math.floor(10000000 + random() * 90000000).toString();
           if (!Object.keys(dataobj.users).includes(id)) {
             isdupe = false;
           }
@@ -265,8 +370,59 @@ function socketSetup() {
       }
 
       connection_client_id = id;
+      for(let i = 0; i < clicks; i++){
+        rollcowsite(socket_client_id)
+      }
     });
   });
+}
+
+function random(){
+  return crypto.randomBytes(4).readUInt32LE() / 0xffffffff
+}
+
+function rollcowsite(socketid){
+  let valuelist = {"epic cow":200,"legendary cow":500,"mythic cow":1000,"miniso cow":5000}
+
+  let multilist = {"epic cow":null,"legendary cow":{multi:5,time:10},"mythic cow":{multi:10,time:10},"miniso cow":{multi:50,time:10}}
+  let data = [
+      {
+        "name": "NONE",
+        "weight": 10000,
+      },
+      {
+        "name": "epic cow",
+        "weight": 50
+      },
+      {
+        "name": "legendary cow",
+        "weight": 10
+      },
+      {
+        "name": "mythic cow",
+        "weight": 5
+      },
+      {
+        "name": "miniso cow",
+        "weight": 1
+      }
+    ]
+  let totalsiterollweight = 10066
+
+  let roll = Math.floor(random()*totalsiterollweight)
+  
+  let cow = data[0];
+  for (let indexofdata = 0; indexofdata < data.length; indexofdata++) {
+    if (roll < data[indexofdata].weight) {
+      cow = data[indexofdata];
+      break;
+    }
+    roll -= data[indexofdata].weight;
+  }
+  //console.log(cow.name)
+  if(cow.name!="NONE"){
+    io.to(socketid).emit("drop", {msg:cow.name,value: valuelist[cow.name],multi:multilist[cow.name]})
+  }
 }
 
 //Function to get placement of user by id
@@ -299,8 +455,17 @@ function updateTotalGlobal() {
 
   const totalclicks = dataobj.clicks;
   io.emit("total", { total: totalclicks });
+  
+  //also update devlog
 
-  //also
+  fetch(process.env.devlog).then((r)=>r.text()).then((text)=>{
+    if(devlog!=text){
+        devlog = text;
+        io.emit("devlog", 
+        devlog,
+      );  
+    }
+  })
 }
 
 function clearEmpt() {
@@ -331,7 +496,7 @@ function rollcow() {
   }
 
   let totalweight = getTotalWeight();
-  let roll = Math.floor(Math.random() * totalweight);
+  let roll = Math.floor(random() * totalweight);
   let data = require("./rolls.json");
   let cow = data[0];
   for (let indexofdata = 0; indexofdata < data.length; indexofdata++) {
@@ -359,12 +524,12 @@ function ytapi(req, res) {
     .then((response) => response.json())
     .then((data) => {
       let i = 0;
-      let item = data.items[Math.floor(Math.random() * data.items.length)];
+      let item = data.items[Math.floor(random() * data.items.length)];
       while (
         item.snippet.title.includes("#shorts") ||
         item.snippet.description.includes("#shorts")
       ) {
-        item = data.items[Math.floor(Math.random() * data.items.length)];
+        item = data.items[Math.floor(random() * data.items.length)];
         i++;
         if (i > 100) {
           break;
@@ -392,5 +557,6 @@ function main() {
       console.error("Error fetching data:", error);
     });
 }
-
-main();
+fetch("https://cowtube.onrender.com/cronjob")
+setTimeout(main, 10000)
+let vers = "1.0.6"

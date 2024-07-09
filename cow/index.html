@@ -1,7 +1,9 @@
 <!doctype html>
 <html lang="en">
   <head>
+    
     <meta charset="utf-8" />
+
     <link rel="icon" type="image/x-icon" href="/cowcur.png" />
     <meta
       name="viewport"
@@ -28,6 +30,7 @@
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"
     ></script>
+    
     <style>
       body {
         user-select: none;
@@ -156,6 +159,7 @@
       </nav>
       <!-- Header-->
       <header class="pt-3 pb-5">
+        <h5 class="container text-secondary" id="devlog"></h5>
         <div class="gradient-border-mask container p-5">
           <h4
             id="user"
@@ -229,6 +233,18 @@
             </span>
           </h2>
 
+          <h4
+            id="multi"
+            class=""
+            style="
+              font-size: 30px;
+              background: -webkit-linear-gradient(right top, #8142f5, #6042f5);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+            "
+          >
+            x1
+          </h4>
           <div style="height: 250px" class="row gx-5 align-items-center">
             <!-- Header text content-->
 
@@ -247,6 +263,11 @@
           </div>
         </div>
       </header>
+      
+<div id="toast-container" style="z-index:100;" class="toast-container position-fixed bottom-0 end-0 p-3">
+  
+</div>
+
       <hr class="m" />
       <footer class="d-inline-flex footer fw-light my-1 container-fluid">
         <p class="container-fluid">cowtube v1</p>
@@ -256,7 +277,9 @@
           </span>
         </p>
       </footer>
+     
     </main>
+    <div id="msg" class="vh-100 vw-100 bg-dark text-light" style="display:none;position:absolute;z-index:100000;"><div class="start-50 top-50 translate-middle position-absolute"><h1  id="msgmsg" ></h1><h2>(reload the page to continue)</h2></div></div>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script src="script.js"></script>
   </body>
