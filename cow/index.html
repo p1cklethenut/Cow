@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en">
   <head>
-    
     <meta charset="utf-8" />
 
     <link rel="icon" type="image/x-icon" href="/cowcur.png" />
@@ -30,8 +29,14 @@
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"
     ></script>
-    
+
     <style>
+      .card:hover {
+        transform: scale(1.075);
+      }
+      .card {
+        transition: transform 0.5s;
+      }
       body {
         user-select: none;
         cursor: url("/cowcur.png"), default !important;
@@ -40,20 +45,19 @@
         position: absolute;
       }
       .cowbtn {
-
         cursor: url("/cowcur.png"), default !important;
         user-select: none;
         position: relative;
         width: 100%;
         height: 100%;
-        max-width: 200px;
+        max-width: 350px;
 
         transition: width 0.4s ease; /* Duration: 3 seconds with an ease timing function */
       }
 
       .cowbtn img {
         width: 100%;
-        max-width: 200px;
+        max-width: 350px;
       }
       .gradient-border-mask {
         border: 3px solid transparent;
@@ -128,11 +132,32 @@
         class="sticky-top navbar navbar-expand-lg navbar-light bg-white border py-3"
       >
         <div class="container px-2">
-          <a class="navbar-brand" href="https://www.amazon.sg/MINISO-Stuffed-Plushies-Birthday-Christmas/dp/B09DYTKT22"
+          <a
+            class="navbar-brand"
+            href="https://www.amazon.sg/MINISO-Stuffed-Plushies-Birthday-Christmas/dp/B09DYTKT22"
             ><span class="fw-bolder" style="color: #b41aff; font-size: 30px"
               >CowTube</span
             ></a
           >
+          <button
+            class="btn btn-outline-primary"
+            data-bs-toggle="offcanvas"
+            href="#offcanvasExample"
+            id="skinbtn"
+          >
+            skins
+          </button>
+
+          <button
+            class="btn btn-outline-primary position-relative"
+            data-bs-toggle="offcanvas"
+            href="#chatmodal"
+            id="chatbtn"
+            
+            onclick=" unread = 0;this.innerHTML = 'chat'"
+          >
+            chat
+          </button>
           <button
             class="navbar-toggler"
             type="button"
@@ -245,41 +270,163 @@
           >
             x1
           </h4>
-          <div style="height: 250px" class="row gx-5 align-items-center">
+          <div style="height: 400px" class="">
             <!-- Header text content-->
 
-            <div class="text-center text-xxl-start">
-              <div class="fs-3 fw-light text-muted">
-                <button
-                  tabindex="-1"
-                  id="cowbtn"
-                  class="cowbtn border border-0 bg-transparent"
-                  onclick="clicked()"
-                >
-                  <img id="cowimg" class="cowimg" src="/cow.png" />
-                </button>
-              </div>
+            <div id="btnparent" class="p-0 m-0 fs-3 fw-light text-muted">
+              <button
+                tabindex="-1"
+                id="cowbtn"
+                class="p-0 m-0 cowbtn border border-0 bg-transparent d-inline-flex"
+                onclick="clicked()"
+              >
+                <img id="cowimg" class="cowimg" />
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="vw-100 offcanvas offcanvas-start"
+            style="background: rgba(256, 256, 256, 0.7)"
+            tabindex="-1"
+            id="offcanvasExample"
+            aria-labelledby="offcanvasExampleLabel"
+          >
+            <div
+              style="background: rgba(256, 256, 256, 1)"
+              class="offcanvas-header"
+            >
+              <h5 class="offcanvas-title">Cow Skins</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="offcanvas-body">
+              <div id="skins" class=""></div>
+            </div>
+          </div>
+
+          <div
+            class="vw-100 offcanvas offcanvas-start"
+            style="transition:none;background: rgba(256, 256, 256, 0.2)"
+            tabindex="-1"
+            id="chatmodal"
+          >
+            <div
+              style="background: rgba(256, 256, 256, 1)"
+              class="offcanvas-header"
+            >
+              <h5 class="offcanvas-title">CowChat</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close"
+
+              ></button>
+            </div>
+            <div class="offcanvas-body">
+              <section>
+                <div class="container py-1">
+                  <div class="row d-flex justify-content-center">
+                    <div class="col-md-8 col-lg-6 col-xl-4" style="width:100%">
+                      <div class="card">
+                        <div
+                          class="card-header d-flex justify-content-between align-items-center p-3"
+                          style="border-top: 4px solid #ffa900"
+                        >
+                          <h5 class="mb-0">Cow Chat</h5>
+                          <div class="d-flex flex-row align-items-center">
+                            <!--span class="badge bg-warning me-3">20</span-->
+                          </div>
+                        </div>
+                        <div
+                          class="pb-5 card-body overflow-scroll"
+                          style="position: relative; height: 400px"
+                          id="chatbox"
+                        >
+                          <h2>Chat connected</h2>
+                          <hr />
+                        </div>
+
+                        <div
+                          class="card-footer bg-light sticky-bottom w-100 position-absolute text-muted d-flex justify-content-start align-items-center"
+                        >
+                          <div class="input-group mb-0">
+                            <input
+                              type="text"
+                              autocomplete="off"
+                              maxlength="100"
+                              id="chatinput"
+                              class="form-control"
+                              placeholder="Type message"
+                              aria-label="Recipient's username"
+                              aria-describedby="button-addon2"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
           </div>
         </div>
       </header>
-      
-<div id="toast-container" style="z-index:100;" class="toast-container position-fixed bottom-0 end-0 p-3">
-  
-</div>
+
+      <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div
+          id="cantbuytoast"
+          class="toast"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <div class="toast-header">
+            <img src="/cowcur.png" class="rounded me-2" alt="..." />
+            <strong class="me-auto">CowTube</strong>
+            <small>skin helper</small>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="toast"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="toast-body">You do not have enough to buy this skin</div>
+        </div>
+      </div>
+
+      <div
+        id="toast-container"
+        style="z-index: 100"
+        class="toast-container position-fixed bottom-0 end-0 p-3"
+      ></div>
 
       <hr class="m" />
       <footer class="d-inline-flex footer fw-light my-1 container-fluid">
-        <p class="container-fluid">cowtube v1</p>
+        <p class="container-fluid">cowtube v1.1</p>
         <p id="uuid" class="text-end container-fluid">
           <span class="placeholder-wave">
             <span class="placeholder" style="width: 100px"> </span>
           </span>
         </p>
       </footer>
-     
     </main>
-    <div id="msg" class="vh-100 vw-100 bg-dark text-light" style="display:none;position:absolute;z-index:100000;"><div class="start-50 top-50 translate-middle position-absolute"><h1  id="msgmsg" ></h1><h2>(reload the page to continue)</h2></div></div>
+    <div
+      id="msg"
+      class="vh-100 vw-100 bg-dark text-light"
+      style="display: none; position: fixed; z-index: 100000"
+    >
+      <div class="start-50 top-50 translate-middle position-absolute">
+        <h1 id="msgmsg"></h1>
+        <h2>(reload the page to continue)</h2>
+      </div>
+    </div>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script src="script.js"></script>
   </body>

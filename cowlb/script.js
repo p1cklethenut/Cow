@@ -1,8 +1,10 @@
 const socket = io();
-
+let incskins = true;
 const placementlabel = document.getElementById("placement");
 const uuidlabel = document.getElementById("uuid");
 const list = document.getElementById("lbl");
+let lastdata;
+
 function getId() {
   let id = localStorage.getItem("id");
   if (!id) {
@@ -22,6 +24,7 @@ function getId() {
     }
   }
 }
+
 function getLb() {
   socket.emit("getlb");
   //return {pos:2,id:"1",lb:[{id:"1",cows:23424},{id:"2",cows:23424}]}
@@ -32,12 +35,12 @@ function format(lb, id) {
   let html = "";
   for (let i = 0; i < lb.length; i++) {
     //console.log(lb[if])
-    let snippet = `<li class="list-group-item`;
+    let snippet = `<li onclick="window.location.href = '/profile/${lb[i].id}'" class="btn text-start list-group-item`;
     if (lb[i].id == id) {
       snippet += ` active`;
     }    
     
-    snippet += `"> ${lb[i].name.replace(/</g, "&lt;").replace(/>/g, "&gt;")} [${lb[i].id}]`;
+    snippet += `"> ${lb[i].name.replace(/</g, "&lt;").replace(/>/g, "&gt;")} <button class="btn btn-outline-secondary" onclick="copyid('${lb[i].id}');event.stopPropagation()">[${lb[i].id}]</button>`;
     //console.log(lb[i].online)
     if (lb[i].online) {
       snippet += `<span style="background:#3ad664" class="mx-3 badge rounded-pill">contributing</span>`;
@@ -82,7 +85,13 @@ function loading() {
 }
 
 async function main(data) {
-  let lb = data;
+  let lb;
+  if(incskins){
+    lb=data.inc
+  }else{
+    lb=data.lb
+  }
+  
   let id = getId();
   if (lb) {
     placementlabel.innerHTML = `Leaderboard Position: ${getPos(lb, id)}`;
@@ -91,10 +100,27 @@ async function main(data) {
     list.innerHTML = await format(lb, id);
   }
 }
-console.log(1);
-getLb();
+
 socket.on("lb", (data) => {
+  lastdata = data
   main(data);
 });
 
-setInterval(getLb, 5000);
+const copyid = async (id) => {
+  try {
+    await navigator.clipboard.writeText(id);
+    const toastBootstrap = bootstrap.Toast.getOrCreateInstance(
+      document.getElementById("copytoast"),
+    );
+    document.getElementById('copybody').innerHTML = `ID ${id} copied!`
+    toastBootstrap.show();
+  } catch (err) {
+    console.error('Failed to copy: ', err);
+  }
+}
+
+
+window.onload = ()=>{
+  setInterval(getLb, 5000);
+  getLb();
+}

@@ -14,7 +14,6 @@ function search(){
 
 async function getnews(){
   return
-  const url = 'https://95d34174-b3f9-4041-bc89-c188d6ab97b9-00-dkjq9wib5u38.sisko.replit.dev:3001/getnews';
 
   const response = await fetch(url);
 

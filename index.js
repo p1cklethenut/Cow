@@ -1,22 +1,180 @@
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 const express = require("express");
+
+const fs = require("fs");
+
+let vers = "1.1";
+
+let updating = false;
 
 const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 const url = process.env["db"];
-let dataobj = {clicks:0,users:{}};
+let timeblock = process.env.time;
+let dataobj = { clicks: 0, users: {} };
 let connections = {}; //to track and update clients
 let devlog = "Cowtube devlog";
+
+//lowest to highest rarity skins
+//hex color:
+//Farm Animal               E9F985
+//Farm Ruler    
+//City Dweller            6bfc03
+//Accomplished Cow  
+//Distingushed Cow  
+//Ruler of Cows            E20EF7
+//Miniso Cow        
+let skins = {
+  skin0: {
+    src: "/cowskins/0.png",
+    name: "King Cow",
+    cost: 20000,
+    rarity: "Ruler of Cows",
+    color: "#E20EF7",
+  },
+  skin1: {
+    src: "/cowskins/1.png",
+    name: "Angy Cow",
+    cost: 10000,
+    rarity: "Farm Animal",
+    color: "#E9F985",
+  },
+  skin2: {
+    src: "/cowskins/2.png",
+    name: "Tomato Cow",
+    cost: 20000,
+    rarity: "Farm Animal",
+    color: "#E9F985",
+  },
+  skin3: {
+    src: "/cowskins/3.png",
+    name: "Angel Cow",
+    cost: 20000,
+    rarity: "City Dweller",
+    color: "#6bfc03",
+  },
+  skin4: {
+    src: "/cowskins/4.png",
+    name: "Strong Cow",
+    cost: 20000,
+    rarity: "City Dweller",
+    color: "#6bfc03",
+  },
+  skin5: {
+    src: "/cowskins/5.png",
+    name: "Parachute Cow",
+    cost: 20000,
+    rarity: "City Dweller",
+    color: "#6bfc03",
+  },
+  skin6: {
+    src: "/cowskins/6.png",
+    name: "Crocowdile",
+    cost: 15000,
+    rarity: "Farm Animal",
+    color: "#E9F985",
+  },
+  skin7: {
+    src: "/cowskins/7.png",
+    name: "Dairyhea",
+    cost: 1000,
+    rarity: "City Dweller",
+    color: "#6bfc03",
+  },
+  skin8: {
+    src: "/cowskins/8.png",
+    name: "Cowcumber",
+    cost: 5000,
+    rarity: "Farm Animal",
+    color: "#E9F985",
+  },
+  skin9: {
+    src: "/cowskins/9.png",
+    name: "Air Cowditioner",
+    cost: 35000,
+    rarity: "City Dweller",
+    color: "#6bfc03",
+  },
+  skin10: {
+    src: "/cowskins/10.png",
+    name: "Thermoo Nuclear Cowerplant",
+    cost: 50000,
+    rarity: "City Dweller",
+    color: "#6bfc03",
+  },
+  skin11: {
+    src: "/cowskins/11.png",
+    name: "Cooked Cow",
+    cost: 20000,
+    rarity: "City Dweller",
+    color: "#6bfc03",
+  },
+  skin12: {
+    src: "/cowskins/12.png",
+    name: "Watermelon Cow",
+    cost: 20000,
+    rarity: "Farm Animal",
+    color: "#E9F985",
+  },
+
+  skin13: {
+    src: "/cowskins/13.png",
+    name: "Vietnamese Cow",
+    cost: 20000,
+    rarity: "City Dweller",
+    color: "#6bfc03",
+  },
+};
+
 app.use(express.json());
 app.get("/*", (req, res) => {
+  if (req.url.startsWith("/cowskins/")) {
+    res.sendFile(
+      __dirname + "/cowskins/cowskin_" + req.url.slice(10).toString(),
+    );
+    return;
+  }
+  if (req.url.startsWith("/profile/")) {
+    if (!Object.keys(dataobj.users).includes(req.url.slice(9))) {
+      res.sendFile(__dirname + "/404page/index.html");
+
+      return;
+    }
+
+    let id = req.url.slice(9);
+    let htmlfile = String(fs.readFileSync(__dirname + "/profile/index.txt"));
+    if (!Object.keys(dataobj.users[id]).includes("skins")) {
+      dataobj.users[id].skins = {};
+    }
+    let tcv = getskinsvalue(dataobj.users[id].skins)
+
+    res.send(
+      htmlfile
+        .replace("{skinsowned}", displayskins(dataobj.users[id].skins))
+        .replaceAll("{uuid}", id)
+        .replaceAll("{username}", dataobj.users[id].name)
+        .replaceAll("{tc}", dataobj.users[id].cows)
+        .replaceAll("{lp}", getPlacement(id, dataobj.users))
+        .replaceAll("{sv}",tcv)
+        .replaceAll("{tcv}",dataobj.users[id].cows+tcv)
+    );
+    return;
+  }
   switch (req.url) {
     case "/":
-      if(Date.now()<1720763299552){
-        res.send("listen in class")
-      }else{
-
+      if (updating) {
+        res.send("CowTube is updating, please wait.");
+        break;
+      }
+      if (timeblock) {
+        if (Date.now() < timeblock) {
+          res.send("listen in class");
+        } else {
+          res.sendFile(__dirname + "/cow/index.html");
+        }
+      } else {
         res.sendFile(__dirname + "/cow/index.html");
       }
       break;
@@ -69,13 +227,17 @@ app.get("/*", (req, res) => {
       res.sendFile(__dirname + "/404page/cowbg.jpg");
       break;
     case "/getnews":
-      getnews(res)
+      getnews(res);
       break;
     case "/home":
       res.sendFile(__dirname + "/home/index.html");
       break;
     case "/home/script.js":
-      res.sendFile(__dirname+"/home/script.js")
+      res.sendFile(__dirname + "/home/script.js");
+      break;
+    case "/admin":
+      let htmlfile = String(fs.readFileSync(__dirname + "/admin_page/index.html"));
+      res.send(htmlfile.replaceAll("{ENVP}",process.env.pass))
       break;
     default:
       res.sendFile(__dirname + "/404page/index.html");
@@ -88,20 +250,66 @@ app.post("/*", (req, res) => {
       ytapi(req, res);
       break;
     case "/console":
-      admin(req,res)
+      admin(req, res);
+      break;
+    case "/update":
+      if (req.body.pass != process.env.pass) {
+        break;
+      }
+      updating = true;
+      setTimeout(()=>{timeout = false},1000*60*2)
+      saveData();
+      //send msg
+      for (const onlineid in connections) {
+        for (let i = 0; i < connections[onlineid].length; i++) {
+          io.to(connections[onlineid][i]).emit(
+            "msg",
+            "Updating cowtube, please wait a few seconds...",
+          );
+        }
+      }
       break;
     default:
       res.send("404");
   }
 });
 
-function admin(req,res){
-  if(req.body.pass == process.env["pass"]){
-    switch(req.body.cmd){
+function displayskins(selfskins) {
+  let html = "";
+  for (const skinhave in selfskins) {
+    //console.log(skinhave)
+    html += `<div class="card d-inline-flex m-2 p-3" style="width: 18em;">
+<img style="height:15em;object-fit: contain" src="${skins[skinhave].src}" class="card-img-top">
+  <div class="card-body">
+    <p class="card-text">${skins[skinhave].name}<br>rarity: ${skins[skinhave].rarity}<br>cost: ${skins[skinhave].cost}</p>
+  </div>
+</div>`;
+
+
+
+        
+  }
+  return html;
+}
+
+function admin(req, res) {
+  if (req.body.pass == process.env["pass"]) {
+    if(Object.keys(dataobj.users).includes(req.body.id)){res.send("ID invalid");return}
+    switch (req.body.cmd) {
+      case "chat":
+        if(req.body.value){
+          io.emit("chatmsg",{msg:req.body.value,id:"system",name:"admin"})
+          res.send(`Sent chat message: ${req.body.value}`)
+        }else{
+          res.send("no value")
+        }
+        break;
       case "changecow":
         dataobj.users[req.body.id].cows += parseInt(req.body.value);
-        dataobj.clicks += parseInt(req.body.value)
-        for(let i=0;i<connections[req.body.id].length;i++){
+        dataobj.clicks += parseInt(req.body.value);
+        if(!connections[req.body.id]){        res.send(`incremented ${req.body.id} cows by ${req.body.value}`);
+;return}
+        for (let i = 0; i < connections[req.body.id].length; i++) {
           let total = dataobj.clicks;
           let self = dataobj.users[req.body.id].cows;
           io.to(connections[req.body.id][i]).emit("number", {
@@ -110,23 +318,27 @@ function admin(req,res){
             id: req.body.id,
             name: dataobj.users[req.body.id].name,
           });
-
-          
         }
-        res.send(`incremented ${req.body.id} cows by ${req.body.value}`)
-        
-        break ;
+        res.send(`incremented ${req.body.id} cows by ${req.body.value}`);
+
+        break;
       case "changename":
         dataobj.users[req.body.id].name = req.body.value;
-        res.send(`changed ${req.body.id} name to ${req.body.value}`)
-        for(let i=0;i<connections[req.body.id].length;i++){
-          io.to(connections[req.body.id][i]).emit("newusername", { name: dataobj.users[req.body.id].name });
+        res.send(`changed ${req.body.id} name to ${req.body.value}`);
+        if(!connections[req.body.id]){return}
+        for (let i = 0; i < connections[req.body.id].length; i++) {
+          io.to(connections[req.body.id][i]).emit("newusername", {
+            name: dataobj.users[req.body.id].name,
+          });
         }
         break;
       case "setcow":
-        dataobj.clicks += parseInt(req.body.value)-dataobj.users[req.body.id].cows;
+        dataobj.clicks +=
+          parseInt(req.body.value) - dataobj.users[req.body.id].cows;
         dataobj.users[req.body.id].cows = parseInt(req.body.value);
-        for(let i=0;i<connections[req.body.id].length;i++){
+        if(!connections[req.body.id]){        res.send(`set ${req.body.id} cows to ${req.body.value}`);return}
+
+        for (let i = 0; i < connections[req.body.id].length; i++) {
           let total = dataobj.clicks;
           let self = dataobj.users[req.body.id].cows;
           io.to(connections[req.body.id][i]).emit("number", {
@@ -135,44 +347,48 @@ function admin(req,res){
             id: req.body.id,
             name: dataobj.users[req.body.id].name,
           });
-
-
         }
-        res.send(`set ${req.body.id} cows to ${req.body.value}`)
+        res.send(`set ${req.body.id} cows to ${req.body.value}`);
         break;
       case "sendmsg":
-        if(connections[req.body.id]){
-          for(let i=0;i<connections[req.body.id].length;i++){
+        if(req.body.id=="all"){
+          io.emit("msg",req.body.value)
+          res.send(`sent ${req.body.value} to all online clients`)
+          break
+        }
+        if (connections[req.body.id]) {
+          for (let i = 0; i < connections[req.body.id].length; i++) {
             io.to(connections[req.body.id][i]).emit("msg", req.body.value);
           }
-
+          res.send(`sent ${req.body.id}: ${req.body.value}`);
+        }else{
+          res.send("notonline")
         }
-        res.send(`sent ${req.body.id}: ${req.body.value}`)
         break;
       default:
         res.send("?");
     }
-  }else{
-    res.send("wrong pass")
+  } else {
+    res.send("wrong pass");
   }
 }
 
-async function getnews(res){
-  var url = 'https://newsapi.org/v2/top-headlines?' +
-    'country=sg&' +
-    'apiKey='+
-    process.env['newsapi'];
+async function getnews(res) {
+  var url =
+    "https://newsapi.org/v2/top-headlines?" +
+    "country=sg&" +
+    "apiKey=" +
+    process.env["newsapi"];
   var req = new Request(url);
-  let response =await fetch(req)
-  let json = await response.json()
+  let response = await fetch(req);
+  let json = await response.json();
   res.send(json);
-  return
-
+  return;
 }
 
 //Function that gets and returns a array of objects, sorted from top to bottom (leaderboard)
-function getLb() {
-  const obj = dataobj.users
+function getLb(inc) {
+  const obj = dataobj.users;
   let sortable = [];
   for (const userarray in obj) {
     //console.log(obj[userarray])
@@ -181,6 +397,9 @@ function getLb() {
       cows: obj[userarray].cows,
       name: obj[userarray].name,
     };
+    if(inc){
+      userob.cows += getskinsvalue(obj[userarray].skins)
+    }
     userob["online"] = Object.keys(connections).includes(userarray);
     sortable.push(userob);
   }
@@ -192,9 +411,19 @@ function getLb() {
   return sortable;
 }
 
+function getskinsvalue(userskins){
+  let value = 0;
+  for(const skinid in userskins){
+    if(userskins[skinid]){
+      value += skins[skinid].cost
+    }
+  }
+  return value
+}
+
 //Function to POST clicks data to a url endpoint:
 function saveData() {
-  let data = dataobj
+  let data = dataobj;
   fetch(url, {
     method: "POST",
     headers: {
@@ -217,18 +446,55 @@ function socketSetup() {
     let socket_client_id = socket.id;
     // Send initial content to the client when connected
     let connection_client_id;
+
+    socket.on("buyskin", (skinid) => {
+      //console.log(skinid);
+      if (!Object.keys(skins).includes(skinid)) {
+        //console.log("skin does not exist");
+        //console.log(skinid);
+        //console.log(skins);
+        return;
+      }
+
+      if (!Object.keys(dataobj.users[connection_client_id]).includes("skins")) {
+        //undef
+        dataobj.users[connection_client_id].skins = {};
+      }
+      if (!dataobj.users[connection_client_id].skins[skinid]) {
+        //should be false?
+        if (dataobj.users[connection_client_id].cows>skins[skinid].cost ) {
+          dataobj.users[connection_client_id].skins[skinid] = true;
+          dataobj.users[connection_client_id].cows -= skins[skinid].cost;
+          dataobj.clicks -= skins[skinid].cost;
+          io.to(socket_client_id).emit("skinupdate", {
+            skins: dataobj.users[connection_client_id].skins,
+            allskins: skins,
+          });
+          let total = dataobj.clicks;
+          let self = dataobj.users[connection_client_id].cows;
+          io.to(socket_client_id).emit("number", {
+            total: total,
+            self: self,
+            id: connection_client_id,
+            name: dataobj.users[connection_client_id].name,
+          });
+        } else {
+        }
+      }
+    });
+
     socket.on("changeusername", (data) => {
       let newuser = data.name;
       if (newuser) {
         if (connection_client_id) {
           dataobj.users[connection_client_id].name = newuser;
-          
+
           socket.emit("newusername", { name: newuser });
         }
       }
     });
     socket.on("getlb", () => {
-      io.to(socket_client_id).emit("lb", getLb());
+      io.to(socket_client_id).emit("lb", {lb:getLb(false),inc:getLb(true)});
     });
     socket.on("disconnect", (reason) => {
       // ...
@@ -267,7 +533,7 @@ function socketSetup() {
     socket.on("id", (data) => {
       //console.log("ided:"+data);
       let id = data;
-      if (!id || dataobj.users[id]=== undefined) {
+      if (!id || dataobj.users[id] === undefined) {
         let isdupe = true;
         while (isdupe) {
           id = Math.floor(10000000 + random() * 90000000).toString();
@@ -290,9 +556,7 @@ function socketSetup() {
       io.to(socket_client_id).emit("leaderboard", {
         lb: leaderboardpos,
       });
-      io.to(socket_client_id).emit("devlog", 
-        devlog,
-      );
+      io.to(socket_client_id).emit("devlog", devlog);
       if (connections[id]) {
         if (!connections[id].includes(socket_client_id)) {
           connections[id].push(socket_client_id);
@@ -301,19 +565,25 @@ function socketSetup() {
         connections[id] = [socket_client_id];
       }
       connection_client_id = id;
+      if (!Object.keys(dataobj.users[connection_client_id]).includes("skins")) {
+        dataobj.users[connection_client_id].skins = {};
+      }
+      io.to(socket_client_id).emit("skinupdate", {
+        skins: dataobj.users[connection_client_id].skins,
+        allskins: skins,
+      });
       console.log(`connections: ${JSON.stringify(connections, null, 2)}`);
-      
     });
-    socket.on("autoclicker",(data)=>{
-      console.log("Autoclicker detected: "+JSON.stringify(data))
-    })
-    socket.on("claimdrop",(data)=>{
+    socket.on("autoclicker", (data) => {
+      console.log("Autoclicker detected: " + JSON.stringify(data));
+    });
+    socket.on("claimdrop", (data) => {
       let id = data.id;
       let toclaim = data.toclaim;
-      if(dataobj.users[id]&&typeof(data.toclaim)=="number"){
+      if (dataobj.users[id] && typeof data.toclaim == "number") {
         //console.log(data)
-        dataobj.users[id].cows += data.toclaim
-        dataobj.clicks += data.toclaim
+        dataobj.users[id].cows += data.toclaim;
+        dataobj.clicks += data.toclaim;
       }
 
       let total = dataobj.clicks;
@@ -324,16 +594,17 @@ function socketSetup() {
         id: id,
         name: dataobj.users[id].name,
       });
-    })
+    });
     socket.on("clicked", (data) => {
-
-      if(data.vers){
-        if(data.vers!=vers)
-        {
-          io.to(socket_client_id).emit("refresh", "Outdated client, refreshing");
+      if (data.vers) {
+        if (data.vers != vers) {
+          io.to(socket_client_id).emit(
+            "refresh",
+            "Outdated client, refreshing",
+          );
         }
-      }else{
-      io.to(socket_client_id).emit("refresh", "Outdated client, refreshing");
+      } else {
+        io.to(socket_client_id).emit("refresh", "Outdated client, refreshing");
       }
       //console.log("clicked: "+JSON.stringify(data));
       let id = data.id;
@@ -347,11 +618,10 @@ function socketSetup() {
             isdupe = false;
           }
         }
-          dataobj.users[id] = { name: "cowcontributer", cows: 0 };
+        dataobj.users[id] = { name: "cowcontributer", cows: 0 };
       }
       dataobj.clicks += clicks;
       dataobj.users[id].cows += clicks;
-
 
       let total = dataobj.clicks;
       let self = dataobj.users[id].cows;
@@ -370,47 +640,66 @@ function socketSetup() {
       }
 
       connection_client_id = id;
-      for(let i = 0; i < clicks; i++){
-        rollcowsite(socket_client_id)
+      for (let i = 0; i < clicks; i++) {
+        rollcowsite(socket_client_id);
       }
     });
+    socket.on("chat",(value)=>{
+      io.emit("chatmsg",{msg:value,id:connection_client_id,name:dataobj.users[connection_client_id].name})
+    })
   });
 }
 
-function random(){
-  return crypto.randomBytes(4).readUInt32LE() / 0xffffffff
+function random() {
+  return crypto.randomBytes(4).readUInt32LE() / 0xffffffff;
 }
 
-function rollcowsite(socketid){
-  let valuelist = {"epic cow":200,"legendary cow":500,"mythic cow":1000,"miniso cow":5000}
+function rollcowsite(socketid) {
+  let valuelist = {
+    "epic cow": 200,
+    "legendary cow": 500,
+    "mythic cow": 1000,
+    "miniso cow": 5000,
+  };
 
-  let multilist = {"epic cow":null,"legendary cow":{multi:5,time:10},"mythic cow":{multi:10,time:10},"miniso cow":{multi:50,time:10}}
+  let multilist = {
+    "epic cow": null,
+    "legendary cow": { multi: 5, time: 10 },
+    "mythic cow": { multi: 50, time: 5 },
+    "miniso cow": { multi: 200, time: 5 },
+  };
   let data = [
-      {
-        "name": "NONE",
-        "weight": 10000,
-      },
-      {
-        "name": "epic cow",
-        "weight": 50
-      },
-      {
-        "name": "legendary cow",
-        "weight": 10
-      },
-      {
-        "name": "mythic cow",
-        "weight": 5
-      },
-      {
-        "name": "miniso cow",
-        "weight": 1
-      }
-    ]
-  let totalsiterollweight = 10066
+    {
+      name: "NONE",
+      weight: 50000,
+    },
+    {
+      name: "epic cow",
+      weight: 50,
+    },
+    {
+      name: "legendary cow",
+      weight: 10,
+    },
+    {
+      name: "mythic cow",
+      weight: 5,
+    },
+    {
+      name: "miniso cow",
+      weight: 1,
+    },
+  ];
+  let totalsiterollweight = 0;
 
-  let roll = Math.floor(random()*totalsiterollweight)
-  
+
+  // calculate sum using forEach() method
+  data.forEach( obj => {
+    totalsiterollweight += obj.weight;
+  })
+  //console.log(totalsiterollweight)
+  let roll = Math.floor(random() * totalsiterollweight);
+
   let cow = data[0];
   for (let indexofdata = 0; indexofdata < data.length; indexofdata++) {
     if (roll < data[indexofdata].weight) {
@@ -420,8 +709,12 @@ function rollcowsite(socketid){
     roll -= data[indexofdata].weight;
   }
   //console.log(cow.name)
-  if(cow.name!="NONE"){
-    io.to(socketid).emit("drop", {msg:cow.name,value: valuelist[cow.name],multi:multilist[cow.name]})
+  if (cow.name != "NONE") {
+    io.to(socketid).emit("drop", {
+      msg: cow.name,
+      value: valuelist[cow.name],
+      multi: multilist[cow.name],
+    });
   }
 }
 
@@ -455,32 +748,30 @@ function updateTotalGlobal() {
 
   const totalclicks = dataobj.clicks;
   io.emit("total", { total: totalclicks });
-  
+
   //also update devlog
 
-  fetch(process.env.devlog).then((r)=>r.text()).then((text)=>{
-    if(devlog!=text){
+  fetch(process.env.devlog)
+    .then((r) => r.text())
+    .then((text) => {
+      if (devlog != text) {
         devlog = text;
-        io.emit("devlog", 
-        devlog,
-      );  
-    }
-  })
+        io.emit("devlog", devlog);
+      }
+    });
 }
 
 function clearEmpt() {
-  let data= dataobj.users
+  let data = dataobj.users;
   let tobedeleted = {};
   for (const id in data) {
-
     if (data[id].cows == 0 && !Object.keys(connections).includes(id)) {
       tobedeleted[id] = data[id];
     }
   }
   for (const id in tobedeleted) {
-    delete dataobj.users[id]
+    delete dataobj.users[id];
   }
-
 }
 
 //Function to roll a cow drop. Deps: getTotalWeight()
@@ -545,7 +836,7 @@ function main() {
   fetch(url)
     .then((response) => response.json())
     .then((data) => {
-      dataobj = JSON.parse(data)
+      dataobj = JSON.parse(data);
       console.log("got data");
       http.listen(process.env.PORT || 3001, () => {
         console.log("Server listening on port " + process.env.PORT || 3001);
@@ -557,6 +848,17 @@ function main() {
       console.error("Error fetching data:", error);
     });
 }
-fetch("https://cowtube.onrender.com/cronjob")
-setTimeout(main, 10000)
-let vers = "1.0.6"
+//post req sending process.env.pass
+
+if(!process.env.dev){
+
+  fetch("https://cowtube.onrender.com/update", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: `{"pass":"${process.env.pass}"}`,
+  });
+}
+
+setTimeout(main, 10000);
