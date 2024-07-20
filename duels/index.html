@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/x-icon" href="/cowcur.png" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Duels | CowTube</title>
+
+    <!-- Bootstrap icons-->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      body {
+        cursor: url("/cowcur.png"), default !important;
+      }
+
+      .gradient-border-mask {
+        border: 3px solid transparent;
+        border-radius: 30px;
+
+        background-image: linear-gradient(white, white),
+          linear-gradient(to right, #b7b3f5, #b47aff);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+      }
+    </style>
+  </head>
+  <body class="">
+    <main class="flex-shrink-0" style="display: block" id="initpage">
+      <!-- Navigation-->
+      <nav
+        class="sticky-top navbar navbar-expand-lg navbar-light bg-white border py-3"
+      >
+        <div class="container px-2">
+          <a class="navbar-brand" href="/"
+            ><span class="fw-bolder" style="color: #b41aff; font-size: 30px"
+              >CowTube | Duels</span
+            ></a
+          >
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 small fw-bolder">
+              <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+              <li class="nav-item">
+                <a class="nav-link" href="/leaderboard">Leaderboard</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/duels">Duels</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      <!-- Header-->
+      <header class="p-5">
+        <div class="p-3 border border-2 rounded rounded-4">
+          <div class="mb-3">
+            <label for="exampleInputEmail1" class="form-label"
+              >UUID(<span id="selfuuid"></span>)</label
+            >
+            <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              id="uuid"
+            /><div class="dropdown" id="dropdown">
+              <button
+                class="btn btn-outline-secondary rounded-start-0 dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                UUID of online players:
+              </button>
+
+              <ul class="dropdown-menu" id="uuiddrop">
+                <h3>getting data...
+              </h3></ul>
+            </div>
+</div>
+            <div id="" class="form-text">
+              Please type in the exact uuid of the player you wish to duel
+            </div>
+
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="acac"
+                checked
+              />
+              <label class="form-check-label" for="acac"
+                >Autoclicker detection</label
+              >
+            </div>
+            <div class="dropdown" id="dropdown">
+              <button
+                class="btn btn-secondary dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                id="drop"
+                aria-expanded="false"
+              >
+                stakes: 1%
+              </button>
+
+              <ul class="dropdown-menu">
+                <li>
+                  <button
+                    class="dropdown-item text-secondary"
+                    onclick="document.getElementById('drop').innerHTML=this.innerHTML;document.getElementById('drop');stakes=0"
+                  >
+                    stakes: 0%
+                  </button>
+                </li>
+                <li>
+                  <button
+                    class="dropdown-item text-success"
+                    onclick="document.getElementById('drop').innerHTML=this.innerHTML;document.getElementById('drop');stakes=1/100"
+                  >
+                    stakes: 1%
+                  </button>
+                </li>
+                <li>
+                  <button
+                    class="dropdown-item text-primary"
+                    onclick="document.getElementById('drop').innerHTML=this.innerHTML;stakes=2/100"
+                  >
+                    stakes: 2%
+                  </button>
+                </li>
+                <li>
+                  <button
+                    class="dropdown-item text-warning"
+                    onclick="document.getElementById('drop').innerHTML=this.innerHTML;stakes=5/100"
+                  >
+                    stakes: 5%
+                  </button>
+                </li>
+                <li>
+                  <button
+                    class="dropdown-item text-danger"
+                    onclick="document.getElementById('drop').innerHTML=this.innerHTML;stakes=10/100"
+                  >
+                    stakes: 10%
+                  </button>
+                </li>
+                <li>
+                  <button
+                    class="dropdown-item text-dark"
+                    onclick="document.getElementById('drop').innerHTML=this.innerHTML;stakes=25/100"
+                  >
+                    stakes: 25%
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <div id="" class="form-text">
+              Stakes determind how much cows are gained/loss on win/loss
+            </div>
+
+            <small
+              >This is based on the <strong>lowest</strong> cow count among the
+              two players, rounded down.</small
+            >
+          </div>
+          <button
+            class="btn btn-primary"
+            style="background-color: #b41aff; border-color: #b41aff"
+            id="duelbtn"
+          >
+            Duel
+          </button>
+        </div>
+
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+          <div
+            id="reqt"
+            class="toast"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <div class="toast-header">
+              <img src="/cowcur.png" class="rounded me-2" alt="..." />
+              <strong class="me-auto">Duel request</strong>
+              <small></small>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="toast"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="toast-body" id="toastbody">
+              User requested a duel
+
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm"
+                onclick="accept()"
+              >
+                Accept
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="p-3 mt-2 border border-1 rounded rounded-4">
+          <div class="row d-flex justify-content-center">
+            <div class="col-md-8 col-lg-6 col-xl-4" style="width: 100%">
+              <div class="card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center p-3"
+                  style="border-top: 4px solid #b41aff"
+                >
+                  <h5 class="mb-0 w-100">Live duel feed</h5>
+                  <button
+                    class="btn btn-outline-warning"
+                    onclick="document.getElementById('feedbox').innerHTML='<h3>Connected</h3>'"
+                    style="color: #b41aff; border-color: #b41aff"
+                  >
+                    clear
+                  </button>
+                  <div class="d-flex flex-row align-items-center">
+                    <!--span class="badge bg-warning me-3">20</span-->
+                  </div>
+                </div>
+                <div
+                  class="card-body overflow-scroll"
+                  style="position: relative; height: 400px"
+                  id="feedbox"
+                >
+                  <h3>Connected</h3>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="toast-container position-fixed bottom-0 start-0 p-3">
+          <div
+            id="senttoast"
+            class="toast"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <div class="toast-header">
+              <img src="/cowcur.png" class="rounded me-2" alt="..." />
+              <strong class="me-auto">Duel request</strong>
+              <small></small>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="toast"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="toast-body" id="toastbody">
+              You sent a duel request to <span id="duelreqsent"></span>
+            </div>
+          </div>
+        </div>
+      </header>
+    </main>
+
+    <main
+      class="p-0 m-0 text-light bg-dark position-fixed vh-100"
+      style="z-index: 1000; display: none; height: 100%; width: 100%"
+      id="duelpage"
+    >
+      <div
+        class="position-fixed top-0 start-50 translate-middle-x p-0 text-center fs-2 container"
+        style="height: 100%; width: 100%"
+      >
+        <div class="container p-0 m-0" style="height: 15%" id="topbar">
+          <div
+            class="row position-relative container p-0 m-0"
+            style="height: 100%"
+          >
+            <div
+              class="col p-0 m-0 d-flex align-items-center justify-content-center"
+              style="
+                width: 50%;
+                height: auto%;
+                background-color: rgba(0, 0, 256, 0.4);
+              "
+            >
+              <h1
+                class=""
+                style="
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                "
+              >
+                You
+              </h1>
+            </div>
+
+            <div
+              class="col p-0 m-0 d-flex align-items-center justify-content-center"
+              style="
+                width: 50%;
+                height: auto;
+                background-color: rgba(256, 0, 0, 0.4);
+              "
+            >
+              <h1
+                style="
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                "
+                id="enemyname"
+              ></h1>
+            </div>
+
+            <div
+              class="p-0 progress"
+              style="background-color: red; height: 10px"
+              role="progressbar"
+            >
+              <div
+                class="progress-bar"
+                id="fightprogress"
+                style="width: 50%"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="p-0 m-0 row container overflow-hidden text-center"
+          id="mainbox"
+          style="height: 85%"
+        >
+          <div class="col position-relative" style="">
+            <div
+              style="width: 70%; height: 70%"
+              class="position-absolute start-50 top-50 translate-middle"
+            >
+              <h1 style="font-size: 60px" id="youclicks">345</h1>
+              <button
+                class="btn"
+                style="width: 70%; height: 70%"
+                onclick="clicked()"
+                id="cowbtn"
+              >
+                <img
+                  style="width: 100%"
+                  src="/cow.png"
+                  id="youbtnimg"
+                />
+              </button>
+              <div
+                class="badge rounded-pill position-absolute translate-middle"
+                style="
+                  background-color: rgba(0, 0, 256, 0.4);
+                  top: 100%;
+                  left: 50%;
+                "
+                id="youcps"
+              >
+                20cps
+              </div>
+            </div>
+          </div>
+          <div
+            class="col position-relative"
+            style="background-color: rgba(256, 256, 256, 0.02)"
+          >
+            <div
+              style="width: 70%; height: 70%"
+              class="position-absolute start-50 top-50 translate-middle"
+            >
+              <h1 style="font-size: 60px" id="enemyclicks">345</h1>
+              <button class="btn" style="width: 70%; height: 70%">
+                <img
+                  style="width: 100%"
+                  src="/cow.png"
+                  id="enemybtnimg"
+                />
+              </button>
+              <div
+                class="badge rounded-pill position-absolute translate-middle"
+                style="
+                  background-color: rgba(256, 0, 0, 0.4);
+                  top: 100%;
+                  left: 50%;
+                "
+                id="enemycps"
+              >
+                20cps
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="position-absolute top-50 start-50 translate-middle badge rounded-pill bg-secondary"
+            style="font-size: 1em; width: auto; height: auto"
+            id="timeleft"
+          >
+            10.0s
+          </div>
+        </div>
+      </div>
+    </main>
+    <main
+      class="position-fixed text-light"
+      style="
+        width: 100vw;
+        height: 100vh;
+        z-index: 1010;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: none;
+      "
+      id="resultpage"
+    >
+      <div
+        class="position-absolute start-50 top-50 translate-middle rounded rounded-5 p-5 text-center border"
+        style="width: auto; height: auto; background-color: rgba(0, 0, 0, 0.7)"
+        id="resultdiv"
+      >
+        <h1 class="" id="mainresult" style="font-size: 65px">---</h1>
+        <table
+          class="table"
+          style="background-color: transparent"
+          data-bs-theme="dark"
+        >
+          <thead>
+            <tr>
+              <th scope="col" style="background-color: transparent">Stat</th>
+              <th scope="col" style="background-color: transparent">You</th>
+              <th scope="col" style="background-color: transparent">Enemy</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="clicksrow">
+              <th scope="row">Clicks</th>
+              <td>--</td>
+              <td>--</td>
+            </tr>
+            <tr id="cpsrow">
+              <th scope="row">average CPS:</th>
+              <td>--.-cps</td>
+              <td>--.-cps</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>Reward:</h3>
+        <h3 id="reward">-- cows</h3>
+        <small onclick="start()" class="btn text-primary">click here to continue</small>
+      </div>
+    </main>
+    <main
+      class="position-fixed text-light"
+      style="
+        width: 100vw;
+        height: 100vh;
+        z-index: 1011;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: none;
+      "
+      id="getready"
+    >
+      <div
+        class="position-absolute start-50 top-50 translate-middle rounded p-5 text-center"
+        style="width: 50%; height: 50%"
+      >
+        <h1>Duel starting...<br>Get ready!
+        <br>
+        <h2 id="startdetails">
+          
+        </h2>
+        
+        </h1>
+        <div
+          class="progress p-0 m-0"
+          role="progressbar"
+          style="background-color: transparent;height:1em"
+        >
+          <div
+            class="progress-bar p-0 m-0"
+            id="waitingprogress"
+            style="transition: none"
+          ></div>
+        </div>
+      </div>
+    </main>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+    <script src="/duels/script.js"></script>
+  <script src="/offlinescript.js"></script>
+  </body>
+</html>

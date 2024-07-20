@@ -12,7 +12,7 @@ let clickbuffer = 0;
 let clicksendbuffer = 0;
 let username;
 let autoclickercount = 0;
-let vers = "1.1";
+let vers = "1.2";
 //console.log(1)
 let clickmulti = 1;
 let selfid;
@@ -66,10 +66,15 @@ socket.on("chatmsg", (data) => {
   chatbox.innerHTML += `
               <div class="w-100 text-wrap m-0 py-0 d-flex text-break"><strong>${escape_html(username)} [${escape_html(id)}]:</strong>${escape_html(msg)}</div>`;
   chatbox.scrollTo(0, chatbox.scrollHeight);
-    unread ++
-    chatbtn.innerHTML = `chat <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-    ${unread}
-  </span>`
+  if(document.getElementById('chatmodal')==document.activeElement||document.getElementById('chatinput')==document.activeElement){
+    //console.log("chatmodalselected")
+  }else{
+      
+      unread ++
+      chatbtn.innerHTML = `chat <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+      ${unread}
+    </span>`
+  }
 });
 function escape_html(str) {
   if (str === null || str === "") return false;
@@ -370,7 +375,7 @@ function autoclickcheck() {
 
       alert("Irregular clicking detected, Please do not use an autoclicker.");
 
-      window.location.reload();
+      //window.location.reload();
     }
   }
 }
@@ -405,7 +410,7 @@ style="height:15em;  object-fit: contain;
       //dont own the skin, prompt to buy
 
       html += `
-                      <a onclick="if(selfcows>${skindata.cost}){socket.emit('buyskin','${skinid}')}else{
+                      <a onclick="if(selfcows>=${skindata.cost}){socket.emit('buyskin','${skinid}')}else{
                       const cantbuytoast = document.getElementById('cantbuytoast')
 
                       const toastBootstrap = bootstrap.Toast.getOrCreateInstance(cantbuytoast)
@@ -442,7 +447,7 @@ function actest() {
 
 setInterval(() => {
   autoclickercount = 0;
-}, 5000);
+}, 30000);
 
 let lastmovedmouse = Date.now();
 let clickedsincemove = 0;

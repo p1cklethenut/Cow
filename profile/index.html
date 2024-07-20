@@ -33,10 +33,10 @@
         user-select: none;
         cursor: url("/cowcur.png"), default !important;
       }
-      
+
       .card:hover{
         transform : scale(1.075);
-      
+
       }
       .card{
         transition:transform 0.5s
@@ -49,7 +49,6 @@
           linear-gradient(to right, #b7b3f5, #b47aff);
         background-origin: border-box;
         background-clip: padding-box, border-box;
-      
     </style>
   </head>
   <body class="d-flex flex-column">
@@ -59,7 +58,7 @@
         class="sticky-top navbar navbar-expand-lg navbar-light bg-white border py-3"
       >
         <div class="container px-2">
-          <a class="navbar-brand" href="https://www.amazon.sg/MINISO-Stuffed-Plushies-Birthday-Christmas/dp/B09DYTKT22"
+          <a class="navbar-brand" href="/"
             ><span class="fw-bolder" style="color: #b41aff; font-size: 30px"
               >CowTube | Profile</span
             ></a
@@ -82,7 +81,7 @@
                 <a class="nav-link" href="/leaderboard">leaderboard</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="/rollcow">rollcow (api)</a>
+                <a class="nav-link" href="/duels">Duels</a>
               </li>
             </ul>
           </div>
@@ -115,37 +114,79 @@
           >
             uuid:{uuid}
           </h2>
-          <h3 style="font-size:40px;
+          <h3
+            style="
+              font-size: 40px;
               background: -webkit-linear-gradient(right top, #b7b3f5, #b41aff);
               -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;">Cows: {tc}</h3>
-          <h3 style="font-size:40px;
+              -webkit-text-fill-color: transparent;
+            "
+          >
+            Cows: {tc}
+          </h3>
+          <h3
+            style="
+              font-size: 40px;
               background: -webkit-linear-gradient(right top, #b7b3f5, #b41aff);
               -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;">Total cow value: {tcv}</h3>
-          <h3 style="font-size:40px;
+              -webkit-text-fill-color: transparent;
+            "
+          >
+            Total cow value: {tcv}
+          </h3>
+          <h3
+            style="
+              font-size: 40px;
               background: -webkit-linear-gradient(right top, #b7b3f5, #b41aff);
               -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;">Skins value: {sv}</h3>
-          <h3 style="font-size:40px;
+              -webkit-text-fill-color: transparent;
+            "
+          >
+            Skins value: {sv}
+          </h3>
+          <h3
+            style="
+              font-size: 40px;
               background: -webkit-linear-gradient(right top, #b7b3f5, #b41aff);
               -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;">Leaderboard position: {lp}</h3>
-          <button class="btn btn-outline-primary" data-bs-toggle="offcanvas" href="#offcanvasExample">
+              -webkit-text-fill-color: transparent;
+            "
+          >
+            Leaderboard position: {lp}
+          </h3>
+          <button
+            class="btn btn-outline-primary"
+            data-bs-toggle="offcanvas"
+            href="#offcanvasExample"
+          >
             View Skins
           </button>
-                    <div class="vw-100 offcanvas offcanvas-start" style="background:rgba(256,256,256,0.7)" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
-            <div style="background:rgba(256,256,256,1)" class="offcanvas-header">
+          <div
+            class="vw-100 offcanvas offcanvas-start"
+            style="background: rgba(256, 256, 256, 0.7)"
+            tabindex="-1"
+            id="offcanvasExample"
+            aria-labelledby="offcanvasExampleLabel"
+          >
+            <div
+              style="background: rgba(256, 256, 256, 1)"
+              class="offcanvas-header"
+            >
               <h5 class="offcanvas-title">Cow Skins Owned</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close"
+              ></button>
             </div>
-            <div class="offcanvas-body" >
-              <div id="skins" class="">{skinsowned}
-
-              </div>
+            <div class="offcanvas-body">
+              <div id="skins" class="">{skinsowned}</div>
             </div>
           </div>
+        </div>
       </header>
     </main>
+    <script src="/offlinescript.js"></script>
   </body>
 </html>

@@ -51,7 +51,6 @@
         width: 100%;
         height: 100%;
         max-width: 350px;
-
         transition: width 0.4s ease; /* Duration: 3 seconds with an ease timing function */
       }
 
@@ -134,7 +133,7 @@
         <div class="container px-2">
           <a
             class="navbar-brand"
-            href="https://www.amazon.sg/MINISO-Stuffed-Plushies-Birthday-Christmas/dp/B09DYTKT22"
+            href="/"
             ><span class="fw-bolder" style="color: #b41aff; font-size: 30px"
               >CowTube</span
             ></a
@@ -149,7 +148,7 @@
           </button>
 
           <button
-            class="btn btn-outline-primary position-relative"
+            class="ms-1 btn btn-outline-primary position-relative"
             data-bs-toggle="offcanvas"
             href="#chatmodal"
             id="chatbtn"
@@ -173,10 +172,10 @@
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 small fw-bolder">
               <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
               <li class="nav-item">
-                <a class="nav-link" href="/leaderboard">leaderboard</a>
+                <a class="nav-link" href="/leaderboard">Leaderboard</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="/rollcow">rollcow (api)</a>
+                <a class="nav-link" href="/duels">Duels</a>
               </li>
             </ul>
           </div>
@@ -409,7 +408,7 @@
 
       <hr class="m" />
       <footer class="d-inline-flex footer fw-light my-1 container-fluid">
-        <p class="container-fluid">cowtube v1.1</p>
+        <p class="container-fluid">cowtube v1.2</p>
         <p id="uuid" class="text-end container-fluid">
           <span class="placeholder-wave">
             <span class="placeholder" style="width: 100px"> </span>
@@ -428,6 +427,7 @@
       </div>
     </div>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-    <script src="script.js"></script>
+    <script src="/script.js"></script>
+    <script src="/offlinescript.js"></script>
   </body>
 </html>
