@@ -1,14 +1,28 @@
 const crypto = require("crypto");
+const { Logtail } = require("@logtail/node");
+const logtail = new Logtail(process.env["bs"]);
 
 const express = require("express");
 
 const fs = require("fs");
 
-let vers = "1.2";
+let vers = "1.2.1";
 
 let updating = false;
 
 const app = express();
+// set up rate limiter: maximum of five requests per minute
+app.set('trust proxy', 1 /* number of proxies between user and server */)
+app.use(express.json({ limit: '1mb' }));
+var RateLimit = require('express-rate-limit');
+var limiter = RateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // max 100 requests per windowMs
+});
+
+// apply rate limiter to all requests
+app.use(limiter);
+
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 const url = process.env["db"];
@@ -224,6 +238,7 @@ app.get("/*", (req, res) => {
       //keeping server alive + saving data to Db
       saveData();
       res.send("croned");
+      //logtail.info("croned")
       break;
     case "/404/style.css":
       res.sendFile(__dirname + "/404page/style.css");
@@ -268,6 +283,8 @@ app.get("/*", (req, res) => {
 });
 
 app.post("/*", (req, res) => {
+
+  logtail.info(`POST request: ${req.url}`);
   switch (req.url) {
     case "/cowtubeapi":
       ytapi(req, res);
@@ -290,7 +307,7 @@ app.post("/*", (req, res) => {
       updating = true;
       setTimeout(
         () => {
-          timeout = false;
+          updating = false;
         },
         1000 * 60 * 2,
       );
@@ -1242,6 +1259,13 @@ function main() {
       console.log("got data");
       http.listen(process.env.PORT || 3001, () => {
         console.log("Server listening on port " + process.env.PORT || 3001);
+
+
+        logtail.info(`Server started`
+        );
+
+        // Ensure that all logs are sent to Logtail
+        logtail.flush()
         setInterval(updateTotalGlobal, 1000); // updating total cow count every second
         socketSetup();
       });
@@ -1253,15 +1277,14 @@ function main() {
 //post req sending process.env.pass
 
 if (!process.env.dev) {
-  fetch("https://cowtube.onrender.com/update", {
+  fetch(process.env["RENDER_EXTERNAL_URL"]+"/update", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: `{"pass":"${process.env.pass}"}`,
-  });
+  }).catch((error)=>{console.log(error);logtail.error(error)});
 }
-
 setTimeout(main, 1000);
 setInterval(saveData, 30000);
 

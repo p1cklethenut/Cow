@@ -12,7 +12,7 @@ let clickbuffer = 0;
 let clicksendbuffer = 0;
 let username;
 let autoclickercount = 0;
-let vers = "1.2";
+let vers = "1.2.1";
 //console.log(1)
 let clickmulti = 1;
 let selfid;
