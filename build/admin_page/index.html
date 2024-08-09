@@ -126,6 +126,13 @@
                         onclick="document.getElementById('drop').innerHTML = this.innerHTML"
                       >Set Timeblock</button>
                     </li>
+
+                    <li>
+                      <button
+                        class="dropdown-item"
+                        onclick="document.getElementById('drop').innerHTML = this.innerHTML"
+                      >Eval code</button>
+                    </li>
                   </ul>
                   <input
                     autocomplete="off"
@@ -172,6 +179,7 @@
         "Send Alert Message": "sendmsg",
         "Send Chat Message": "chat",
         "Set Timeblock": "timeblock",
+        "Eval code":"eval"
       };
 
       const sendcmd = () => {
