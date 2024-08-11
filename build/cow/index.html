@@ -38,7 +38,6 @@
         transition: transform 0.5s;
       }
       body {
-        user-select: none;
         cursor: url("/cowcur.png"), default !important;
       }
       .cowparticle {
@@ -48,15 +47,17 @@
         cursor: url("/cowcur.png"), default !important;
         user-select: none;
         position: relative;
-        width: 100%;
-        height: 100%;
-        max-width: 350px;
+        display: inline-block;
+        height: auto;
+        width: 45%;
         transition: width 0.4s ease; /* Duration: 3 seconds with an ease timing function */
       }
 
       .cowbtn img {
-        width: 100%;
-        max-width: 350px;
+        max-height: 90svh;
+        max-width:100%;
+        object-fit:scale-down;
+
       }
       .gradient-border-mask {
         border: 3px solid transparent;
@@ -177,13 +178,19 @@
               <li class="nav-item">
                 <a class="nav-link" href="/duels">Duels</a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://cowtube-docs.onrender.com/">Docs</a>
+              </li>
             </ul>
           </div>
         </div>
       </nav>
       <!-- Header-->
       <header class="pt-3 pb-5">
-        <h5 class="container text-secondary" id="devlog"></h5>
+        <h5 class="container text-secondary" id="devlog">
+        <span class="placeholder-wave">
+          <span class="placeholder" style="width: 250px"> </span>
+        </span></h5>
         <div class="gradient-border-mask container p-5">
           <h4
             id="user"
@@ -254,6 +261,10 @@
           >
             <span class="placeholder-wave">
               <span class="placeholder" style="width: 250px"> </span>
+            </span><br>
+
+            <span class="placeholder-wave">
+              <span class="placeholder" style="width: 300px"> </span>
             </span>
           </h2>
 
@@ -269,17 +280,17 @@
           >
             x1
           </h4>
-          <div style="height: 400px" class="">
+          <div style="height: 100vh" class="">
             <!-- Header text content-->
 
-            <div id="btnparent" class="p-0 m-0 fs-3 fw-light text-muted">
+            <div id="btnparent" class="h-100 p-0 m-0 fs-3 fw-light text-muted bg-transparent">
               <button
                 tabindex="-1"
                 id="cowbtn"
-                class="p-0 m-0 cowbtn border border-0 bg-transparent d-inline-flex"
+                class="p-0 m-0 cowbtn border border-0 bg-transparent"
                 onclick="clicked()"
               >
-                <img id="cowimg" class="cowimg" />
+                <img id="cowimg" class="cowimg p-0 m-0" />
               </button>
             </div>
           </div>
@@ -408,7 +419,7 @@
 
       <hr class="m" />
       <footer class="d-inline-flex footer fw-light my-1 container-fluid">
-        <p class="container-fluid">cowtube v1.2.1</p>
+        <p class="container-fluid">cowtube {VERSION}</p>
         <p id="uuid" class="text-end container-fluid">
           <span class="placeholder-wave">
             <span class="placeholder" style="width: 100px"> </span>

@@ -9,7 +9,7 @@
     />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>{username} | Profile</title>
+    <title>Leaderboard | CowTube</title>
 
     <!-- Bootstrap icons-->
     <link
@@ -30,17 +30,9 @@
     ></script>
     <style>
       body {
-        user-select: none;
         cursor: url("/cowcur.png"), default !important;
       }
 
-      .card:hover{
-        transform : scale(1.075);
-
-      }
-      .card{
-        transition:transform 0.5s
-      }
       .gradient-border-mask {
         border: 3px solid transparent;
         border-radius: 30px;
@@ -49,6 +41,7 @@
           linear-gradient(to right, #b7b3f5, #b47aff);
         background-origin: border-box;
         background-clip: padding-box, border-box;
+      }
     </style>
   </head>
   <body class="d-flex flex-column">
@@ -60,7 +53,7 @@
         <div class="container px-2">
           <a class="navbar-brand" href="/"
             ><span class="fw-bolder" style="color: #b41aff; font-size: 30px"
-              >CowTube | Profile</span
+              >CowTube | Leaderboard</span
             ></a
           >
           <button
@@ -78,10 +71,13 @@
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 small fw-bolder">
               <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
               <li class="nav-item">
-                <a class="nav-link" href="/leaderboard">leaderboard</a>
+                <a class="nav-link" href="/leaderboard">Leaderboard</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="/duels">Duels</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://cowtube-docs.onrender.com/">Docs</a>
               </li>
             </ul>
           </div>
@@ -89,18 +85,29 @@
       </nav>
       <!-- Header-->
       <header class="pt-3 pb-5">
-        <div class="gradient-border-mask container p-5 text-wrap">
+        <div class="gradient-border-mask container p-5">
+          <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="toggle">
+              Include skins</button>
+            <ul class="dropdown-menu">
+              <li><button class="dropdown-item" onclick="incskins = false;document.getElementById('toggle').innerHTML = 'Dont include skins';main(lastdata)">Dont include skins</button></li>
+              <li><button class="dropdown-item" onclick="incskins = true;document.getElementById('toggle').innerHTML = 'Include skins';main(lastdata)">Include skins</button></li>
+            </ul>
+          </div>
+
           <h1
-            id="name"
+            id="placement"
             class="d-inline-flex fw-bold"
             style="
-              font-size: 60px;
+              font-size: 50px;
               background: -webkit-linear-gradient(right top, #b7b3f5, #b41aff);
               -webkit-background-clip: text;
               -webkit-text-fill-color: transparent;
             "
           >
-            {username}
+            <span class="placeholder-wave">
+              <span class="placeholder" style="width: 200px"> </span>
+            </span>
           </h1>
           <h2
             id="uuid"
@@ -112,81 +119,57 @@
               -webkit-text-fill-color: transparent;
             "
           >
-            uuid:{uuid}
-          </h2>
-          <h3
-            style="
-              font-size: 40px;
-              background: -webkit-linear-gradient(right top, #b7b3f5, #b41aff);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-            "
-          >
-            Cows: {tc}
-          </h3>
-          <h3
-            style="
-              font-size: 40px;
-              background: -webkit-linear-gradient(right top, #b7b3f5, #b41aff);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-            "
-          >
-            Total cow value: {tcv}
-          </h3>
-          <h3
-            style="
-              font-size: 40px;
-              background: -webkit-linear-gradient(right top, #b7b3f5, #b41aff);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-            "
-          >
-            Skins value: {sv}
-          </h3>
-          <h3
-            style="
-              font-size: 40px;
-              background: -webkit-linear-gradient(right top, #b7b3f5, #b41aff);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-            "
-          >
-            Leaderboard position: {lp}
-          </h3>
-          <button
-            class="btn btn-outline-primary"
-            data-bs-toggle="offcanvas"
-            href="#offcanvasExample"
-          >
-            View Skins
-          </button>
-          <div
-            class="vw-100 offcanvas offcanvas-start"
-            style="background: rgba(256, 256, 256, 0.7)"
-            tabindex="-1"
-            id="offcanvasExample"
-            aria-labelledby="offcanvasExampleLabel"
-          >
-            <div
-              style="background: rgba(256, 256, 256, 1)"
-              class="offcanvas-header"
-            >
-              <h5 class="offcanvas-title">Cow Skins Owned</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="offcanvas"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div class="offcanvas-body">
-              <div id="skins" class="">{skinsowned}</div>
-            </div>
+            <span class="placeholder-wave">
+              <span class="placeholder" style="width: 250px"> </span>
+            </span>
+          </h2> <div style="" class="row gx-5 align-items-center">
+            <!-- Header text content-->
+
+            <ul id="lbl" class="m-0 p-0 list-group list-group-numbered">
+              <li class="list-group-item active">
+                <span class="placeholder-wave">
+                  <span class="placeholder" style="width: 250px"> </span>
+                </span>
+              </li>
+              <li class="list-group-item">
+                <span class="placeholder-wave">
+                  <span class="placeholder" style="width: 250px"> </span>
+                </span>
+              </li>
+              <li class="list-group-item">
+                <span class="placeholder-wave">
+                  <span class="placeholder" style="width: 250px"> </span>
+                </span>
+              </li>
+              <li class="list-group-item">
+                <span class="placeholder-wave">
+                  <span class="placeholder" style="width: 250px"> </span>
+                </span>
+              </li>
+            </ul>
           </div>
         </div>
       </header>
+      <hr class="m" />
+      <footer class="d-inline-flex footer fw-light my-1 container-fluid">
+        <p class="container-fluid">cowtube {VERSION}</p>
+      </footer>
     </main>
-    <script src="/offlinescript.js"></script>
-  </body>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="copytoast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+          <img src="/cowcur.png" class="rounded me-2" alt="...">
+          <strong class="me-auto">CowLeaderboard</strong>
+          <small>clipboard</small>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="copybody">
+            ID copied!
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="/leaderboard/script.js"></script>
+  <script src="/offlinescript.js"></script>
+</body>
 </html>

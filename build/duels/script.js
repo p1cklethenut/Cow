@@ -107,14 +107,14 @@ socket.on("startduel", (data) => {
   let diff = data.time - Date.now();
   let starton = data.starton - diff;
   let endon = data.endon - diff;
-  document.getElementById("youbtnimg").src = data.skin
-  document.getElementById("enemybtnimg").src = data.enemyskin
+  document.getElementById("youbtnimg").src = data.skin;
+  document.getElementById("enemybtnimg").src = data.enemyskin;
 
   if (data.acac) {
     acac = true;
     console.log("on");
-  }else{
-    acac = false
+  } else {
+    acac = false;
   }
   startduel(enemyname, enemyid, starton, endon);
 });
@@ -145,7 +145,7 @@ socket.on("duelend", (result) => {
   if (!induel) {
     return;
   }
-  acac = false
+  acac = false;
   let win = result.win;
 
   resultpage.style.display = "block";
@@ -226,7 +226,8 @@ async function startduel(enemyname, enemyid, starton, endon) {
   console.log(starton);
   if (starton - Date.now() > 0) {
     document.getElementById("getready").style.display = "block";
-    document.getElementById('startdetails').innerHTML = `Enemy: ${enemyname}<br>[${enemyid}]`
+    document.getElementById("startdetails").innerHTML =
+      `Enemy: ${enemyname}<br>[${enemyid}]`;
     while (starton > Date.now()) {
       document.getElementById("waitingprogress").style.width =
         (((starton - Date.now()) / 3000) * 100).toFixed(1) + "%";
@@ -277,9 +278,13 @@ document.getElementById("duelbtn").onclick = () => {
       id: document.getElementById("uuid").value,
       stakes: stakes,
       acac: document.getElementById("acac").checked,
-      reqskin:localStorage.getItem('skin-src')
+      reqskin: localStorage.getItem("skin-src"),
     });
     senttoast(document.getElementById("uuid").value);
+    document.getElementById("duelbtn").disabled = true;
+    setTimeout(() => {
+      document.getElementById("duelbtn").disabled = false;
+    }, 1000);
   }
 };
 
@@ -321,13 +326,13 @@ socket.on("duelannounce", (text) => {
 </h5>`;
 });
 
-socket.on("uuiddrop",(data)=>{
+socket.on("uuiddrop", (data) => {
   let html = "";
-  console.log(data)
-  for(let i = 0;i<data.length;i++){
-    html+=`<li> <button class="dropdown-item text-secondary" onclick="document.getElementById('uuid').value=this.innerHTML;" >${data[i]}</button> </li>`
+  console.log(data);
+  for (let i = 0; i < data.length; i++) {
+    html += `<li> <button class="dropdown-item text-secondary" onclick="document.getElementById('uuid').value=this.innerHTML;" >${data[i]}</button> </li>`;
   }
-  document.getElementById('uuiddrop').innerHTML = html;
-})
+  document.getElementById("uuiddrop").innerHTML = html;
+});
 
 window.onload = start;

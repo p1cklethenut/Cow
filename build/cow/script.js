@@ -12,13 +12,19 @@ let clickbuffer = 0;
 let clicksendbuffer = 0;
 let username;
 let autoclickercount = 0;
-let vers = "1.2.1";
+let vers = "{VERSION}";
 //console.log(1)
 let clickmulti = 1;
 let selfid;
 let timelastclicked = 0;
 let cowimgs = [];
-let width = 350;
+let width = cowbtn.offsetWidth;
+let selectedskin = localStorage.getItem("skin-src")
+setInterval(()=>selectedskin=localStorage.getItem("skin-src"), 5000)
+new ResizeObserver(() => (width = cowbtn.offsetWidth)).observe(
+  document.getElementById("btnparent"),
+);
+
 let totalcows = 0;
 let selfcows = 0;
 let leaderboardpos;
@@ -46,15 +52,17 @@ chatinput.addEventListener("keydown", (e) => {
     }
   }
 });
-document.body.addEventListener("keydown",(e)=>{
-  if(e.key=="/"){
-    if(document.activeElement==chatinput){return}
-    
-      chatinput.focus()
+document.body.addEventListener("keydown", (e) => {
+  if (e.key == "/") {
+    if (document.activeElement == chatinput) {
+      return;
+    }
 
-    e.preventDefault()
+    chatinput.focus();
+
+    e.preventDefault();
   }
-})
+});
 socket.on("drop", (data) => {
   createToast(data.msg, data.value, data.multi);
 });
@@ -66,14 +74,16 @@ socket.on("chatmsg", (data) => {
   chatbox.innerHTML += `
               <div class="w-100 text-wrap m-0 py-0 d-flex text-break"><strong>${escape_html(username)} [${escape_html(id)}]:</strong>${escape_html(msg)}</div>`;
   chatbox.scrollTo(0, chatbox.scrollHeight);
-  if(document.getElementById('chatmodal')==document.activeElement||document.getElementById('chatinput')==document.activeElement){
+  if (
+    document.getElementById("chatmodal") == document.activeElement ||
+    document.getElementById("chatinput") == document.activeElement
+  ) {
     //console.log("chatmodalselected")
-  }else{
-      
-      unread ++
-      chatbtn.innerHTML = `chat <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+  } else {
+    unread++;
+    chatbtn.innerHTML = `chat <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
       ${unread}
-    </span>`
+    </span>`;
   }
 });
 function escape_html(str) {
@@ -109,13 +119,13 @@ socket.on("skinupdate", (data) => {
   ) {
     localStorage.setItem("equipped-skin", "cow");
     localStorage.setItem("skin-src", "/cow.png");
-    document.getElementById("cowbtn").children[0].src =
-      localStorage.getItem("skin-src");
+    cowbtn.children[0].src = localStorage.getItem("skin-src");
   }
 });
 
 socket.on("connect", (data) => {
-  socket.emit("id", getId());
+  document.getElementById("socketiddisplay").innerHTML = socket.id;
+  socket.emit("id", {id:getId(),hash:localStorage.getItem("hash")});
 });
 
 socket.on("total", (data) => {
@@ -137,13 +147,16 @@ socket.on("number", (data) => {
   selfcows = data.self;
   updatedisplay();
   localStorage.setItem("id", data.id);
+  localStorage.setItem("hash", data.hash);
+
   if (selfid != data.id) {
     document.getElementById("uuid").innerHTML = `
-    uuid: ${data.id}
+    uuid: <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#idModal">
+${data.id}</button>
     `;
     selfid = data.id;
-    document.getElementById("cowbtn").onclick = clicked;
-    document.getElementById("cowbtn").addEventListener("keydown", (e) => {
+    cowbtn.onclick = clicked;
+    cowbtn.addEventListener("keydown", (e) => {
       e.preventDefault();
     });
     usernamedisplay.innerHTML = data.name
@@ -199,17 +212,12 @@ async function clicked() {
   //console.log((width *0.8).toFixed(0)+"px")
   cowbtn.style.width = (width * 0.8).toFixed(0) + "px";
 
-  //cowbtn.style.height = (document.getElementById('cowimg').offsetHeight *0.8).toFixed(0)+ "px"
 
-  let secs = 150;
-  let options = [1, 2, 3, 5, 10];
-  let num = options[Math.floor(Math.random() * options.length)];
-  for (let i = 0; i < num; i++) {
-    clickeffect(cowbtn);
-    await sleep(secs / num);
-  }
+
+  clickeffect(cowbtn);
+  await sleep(150);
+
   cowbtn.style.width = width + "px";
-  cowbtn.style.height = document.getElementById("cowimg").offsetHeight + "px";
 }
 
 function updatedisplay() {
@@ -222,7 +230,9 @@ function updatedisplay() {
       `<br>Leaderboard Position: ${leaderboardpos}`;
   } else {
     self.innerHTML =
-      "Your contributions: " + (selfcows + clickbuffer + clicksendbuffer);
+      "Your contributions: " +
+      (selfcows + clickbuffer + clicksendbuffer) +
+      "<br>Leaderboard Position: N/A";
   }
 }
 
@@ -235,16 +245,17 @@ function generatecowimgid() {
 }
 
 async function clickeffect(cowbtn) {
-  if (cowimgs.length > 75) {
+  if (cowimgs.length > 20) {
     return;
   }
   let cowid = generatecowimgid();
+  let imgsrc = selectedskin;
   let element = `
-  <div id="${await cowid}" class="cowparticle" style="
+  <div id="${cowid}" class="cowparticle" style="
         left: ${Math.floor(Math.random() * cowbtn.offsetWidth)}px;
         top:${Math.floor(Math.random() * cowbtn.offsetHeight)}px;
-        width:${Math.floor((Math.random() * cowbtn.offsetWidth) / 10) + cowbtn.offsetWidth / 20}px;">
-  <img src="/cow.png">
+        width:${Math.floor((Math.random() * cowbtn.offsetWidth) / 4) + cowbtn.offsetWidth / 20}px;">
+  <img src="${imgsrc}">
   </div>`;
 
   cowbtn.innerHTML += element;
@@ -284,7 +295,7 @@ function savenewuser() {
 
 async function update() {
   if (clickbuffer > 0) {
-    socket.emit("clicked", { id: getId(), clicks: clickbuffer, vers: vers });
+    socket.emit("clicked", { id: getId(), clicks: clickbuffer, vers: vers,hash:localStorage.getItem("hash") });
     clicksendbuffer = clickbuffer;
     clickbuffer = 0;
   }
@@ -343,7 +354,7 @@ function multi(btn, multi, time) {
 }
 
 function claimdrops(value) {
-  socket.emit("claimdrop", { id: selfid, toclaim: value });
+  socket.emit("claimdrop", { id: selfid, toclaim: value , hash:localStorage.getItem("hash")});
 }
 
 function autoclickcheck() {
@@ -456,26 +467,49 @@ document.addEventListener("mousemove", (event) => {
   clickedsincemove = 0;
 });
 
-window.onload = function () {
+function startup () {
   if (localStorage.getItem("equipped-skin")) {
     if (localStorage.getItem("skin-src")) {
-      document.getElementById("cowbtn").children[0].src =
-        localStorage.getItem("skin-src");
+      cowbtn.children[0].src = localStorage.getItem("skin-src");
       skinsrc = localStorage.getItem("skin-src");
       cowbtn.style.width = width + "px";
-      document.getElementById("btnparent").style.height =
-        cowbtn.offsetHeight + 100 + "px";
     }
 
     equippedskin = localStorage.getItem("equipped-skin");
   } else {
     localStorage.setItem("equipped-skin", "cow");
     localStorage.setItem("skin-src", "/cow.png");
-    document.getElementById("cowbtn").children[0].src =
-      localStorage.getItem("skin-src");
+    cowbtn.children[0].src = localStorage.getItem("skin-src");
   }
   update();
 };
+
+document.getElementById("socketidsubmit").onclick = () => {
+  const socketid = document.getElementById("socketidinput").value.trim();
+  if (socketid.length == 0) {
+    alert("Please enter a connection ID");
+    return;
+  }
+  if (socketid == socket.id) {
+    alert("Inputted connection ID is the same as your own connection ID");
+    return
+  }
+  socket.emit("loginacc", { socketid: socketid });
+};
+socket.on("loginacc", (data) => {
+  if (data) {
+    if ((data.id && data.cows&&data.hash)) {
+      if (confirm(`Account [${data.id}] found (${data.cows} cows), login?`)) {
+        localStorage.setItem("id", data.id);
+        localStorage.setItem("hash", data.hash);
+
+        window.location.reload()
+      }
+    }else if(data.invalidid){
+      alert("Invalid connection ID or account does not exist. Note that connection IDs are case sensitive and do not work when user is offline.")
+    }
+  }
+});
 
 document.body.addEventListener("click", (e) => {
   //console.log("clicked")
@@ -498,9 +532,9 @@ document.body.addEventListener("click", (e) => {
     actest();
     actested = true;
   }
-  if (timelastclicked != undefined) {
-    if (timelastclicked + 50 > Date.now()) {
-      //console.log(timelastclicked+50 < Date.now())
+  if (timelastclicked) {
+    if (timelastclicked + 20 > Date.now()) {
+      autoclickercounter++;
       return;
     }
   }
@@ -508,3 +542,5 @@ document.body.addEventListener("click", (e) => {
   //console.log("registed")
   //const mooaudio = new Audio("/moo.mp3");
 });
+
+startup()
