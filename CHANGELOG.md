@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file. This log is
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to the principles of [Semantic Versioning](https://semver.org/spec/v2.0.0.html), ensuring that version numbers convey meaningful information about the state of the project.
 
+## [2.1.0] - 2024-08-15
+
+**This is a stable version.**
+
+### Added
+- **Roll Page**: Rolling cows for a random multiplier return.
+- **Username Truncation**: Username changes are now cut to 30 characters. 
+
+### Removed
+- **Directory Section in README**: Deemed unnecessary. 
+
 ## [2.0.0] - 2024-08-11
 
 **This is a stable version.**

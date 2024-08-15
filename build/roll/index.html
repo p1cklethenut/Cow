@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/x-icon" href="/cowcur.png" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, shrink-to-fit=no"
+        />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Roll | CowTube</title>
+
+        <!-- Bootstrap icons-->
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"
+            rel="stylesheet"
+        />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+            crossorigin="anonymous"
+        />
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"
+        ></script>
+        <style>
+            body {
+                text-align: center;
+                user-select: none;
+                cursor: url("/cowcur.png"), default !important;
+            }
+
+            #finishscreen {
+                background-color: rgba(0, 0, 0, 0.6);
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                display: none;
+                z-index: 1100;
+                transition: opacity 1s ease-in;
+            }
+
+            .edge {
+                position: relative;
+                width: 100%;
+                overflow: hidden;
+                margin: 0 auto;
+                height: 200px;
+                background-color: #f0f0f0;
+                --mask: linear-gradient(
+                        to right,
+                        rgba(0, 0, 0, 0) 0%,
+                        rgba(0, 0, 0, 1) 10%,
+                        rgba(0, 0, 0, 1) 90%,
+                        rgba(0, 0, 0, 0) 100%
+                    )
+                    100% 50% / 100% 100% repeat-x;
+                -webkit-mask: var(--mask);
+                mask: var(--mask);
+            }
+
+            .slider {
+                display: flex;
+                position: absolute;
+                left: 100%;
+                height: 100%;
+                transition: all 5s ease-in-out;
+            }
+
+            .item {
+                width: 18rem;
+                height: 100%;
+                margin: 0 0px;
+                background-color: #f1f1f1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 40px;
+                font-weight: bold;
+                border-radius: 0px;
+            }
+
+            .gradient-border-mask {
+                border: 3px solid transparent;
+                border-radius: 30px;
+                background-image: linear-gradient(white, white),
+                    linear-gradient(to right, #b7b3f5, #b47aff);
+                background-origin: border-box;
+                background-clip: padding-box, border-box;
+            }
+
+            .prize-popup {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1050;
+                width: 100%;
+                max-width: 400px;
+                background-color: rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(5px);
+                padding: 20px;
+                border-radius: 10px;
+            }
+
+            .prize-card {
+                background-color: #ffffff;
+                box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+                border-radius: 10px;
+            }
+
+            .card-title {
+                color: #2b7a78;
+                font-weight: bold;
+            }
+
+            .card-text {
+                font-size: 1.2rem;
+                color: #17252a;
+            }
+
+            .btn-success {
+                background-color: #2b7a78;
+                border-color: #2b7a78;
+            }
+
+            .btn-success:hover {
+                background-color: #3aafa9;
+                border-color: #3aafa9;
+            }
+        </style>
+    </head>
+
+    <body class="d-flex flex-column">
+        <main class="flex-shrink-0">
+            <!-- Navigation-->
+            <nav
+                class="sticky-top navbar navbar-expand-lg navbar-light bg-white border py-3"
+            >
+                <div class="container px-2">
+                    <a class="navbar-brand" href="/"
+                        ><span
+                            class="fw-bolder"
+                            style="color: #b41aff; font-size: 30px"
+                            >CowTube | Roll</span
+                        ></a
+                    >
+                    <button
+                        class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent"
+                        aria-controls="navbarSupportedContent"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation"
+                    >
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div
+                        class="collapse navbar-collapse"
+                        id="navbarSupportedContent"
+                    >
+                        <ul
+                            class="navbar-nav ms-auto mb-2 mb-lg-0 small fw-bolder"
+                        >
+                            <li class="nav-item">
+                                <a class="nav-link" href="/">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/leaderboard"
+                                    >Leaderboard</a
+                                >
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/duels">Duels</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="/roll">Roll</a>
+                            </li>
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link"
+                                    href="https://cowtube-docs.onrender.com/"
+                                    >Docs</a
+                                >
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <!-- Header-->
+            <header class="p-5">
+                <div class="border rounded">
+                    <div
+                        class="container border-bottom p-2 d-flex justify-content-between"
+                    >
+                        <h2 class="p-0 m-0" id="name"><span class="placeholder-wave">
+                          <span class="placeholder" style="width: 250px"> </span>
+                        </span></h2>
+                        <h2 class="text-secondary p-0 m-0" id="cows"><span class="placeholder-wave">
+                          <span class="placeholder" style="width: 250px"> </span>
+                        </span></h2>
+                    </div>
+                    <div class="container edge" id="outerslider">
+                        <div
+                            class="vr h-100 position-absolute"
+                            style="
+                                z-index: 10;
+                                width: 0.25em;
+                                background-color: rgba(0,0,0,1);
+                            "
+                        ></div>
+                        <div id="slider" class="slider"></div>
+                    </div>
+                    <div
+                        class="container border-top p-2 d-flex flex-row-reverse"
+                    >
+                        <div class="input-group" style="width: auto">
+                            <span class="input-group-text">Stake:</span>
+
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary dropdown-toggle"
+                                id="stake"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                1000
+                            </button>
+
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <button
+                                        class="dropdown-item"
+                                        onclick="document.getElementById('stake').innerHTML = this.innerHTML"
+                                    >
+                                        1000
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        class="dropdown-item"
+                                        onclick="document.getElementById('stake').innerHTML = this.innerHTML"
+                                    >
+                                        2000
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        class="dropdown-item"
+                                        onclick="document.getElementById('stake').innerHTML = this.innerHTML"
+                                    >
+                                        5000
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        class="dropdown-item"
+                                        onclick="document.getElementById('stake').innerHTML = this.innerHTML"
+                                    >
+                                        10000
+                                    </button>
+                                </li>
+                            </ul>
+                            <button
+                                id="startbtn"
+                                class="btn btn-outline-success"
+                                onclick="clicked()"
+                            >
+                                roll
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+        </main>
+        <main id="finishscreen">
+            <div id="prizePopup" class="prize-popup">
+                <div class="card prize-card">
+                    <div class="card-header text-center">
+                        <h5 class="card-title" id="resulttitle">
+                            You won 2000 cows!
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <p class="card-text" id="resulttext">
+                            You landed on a <strong>multiplier</strong> of
+                        </p>
+                        <h2 class="card" id="resultmulti">X2</h2>
+                        <button
+                            onclick="this.parentNode.parentNode.parentNode.parentNode.style.display = 'none'"
+                            class="btn btn-success"
+                        >
+                            Continue
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+          <div id="notenoughtoast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+              <img src="/cow.png" width="32" class="rounded me-2" alt="...">
+              <strong class="me-auto">CowTube</strong>
+              <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+              You do not have enough cows to roll. Consider lowering the stakes if it is not already 1000.
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+        <script src="/roll/script.js"></script>
+      <script src="/offlinescript.js"></script>    </body>
+</html>

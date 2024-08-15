@@ -10,7 +10,7 @@ const {
   RATE_LIMIT,
   VERSION,
   YOUTUBE_API_KEY,
-  SAVE_DATA
+  SAVE_DATA,
 } = require("./config.js");
 if (!VERSION || !ACCESS_TOKEN || !PROCESS_PORT) {
   throw new Error(
@@ -30,12 +30,14 @@ const app = express();
 
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
-const cors = require('cors');
+const cors = require("cors");
 
-app.use(cors({
-    origin: '*', // Allow all origins
-    methods: ['POST'] // Allow only POST requests
-}));
+app.use(
+  cors({
+    origin: "*", // Allow all origins
+    methods: ["POST"], // Allow only POST requests
+  }),
+);
 
 let updating = false;
 
@@ -59,8 +61,6 @@ if (RATE_LIMIT) {
   // apply rate limiter to all requests
   app.use(limiter);
 }
-
-
 
 //lowest to highest rarity skins
 //hex color:
@@ -191,6 +191,7 @@ let skins: SkinList = {
 
 //handle express.js get/post
 app.use(express.json());
+
 app.get("/*", (req: any, res: any) => {
   if (req.url == "/rollcow") {
     let rolls: string[] = [];
@@ -326,6 +327,13 @@ app.get("/*", (req: any, res: any) => {
     case "/duels/script.js":
       res.sendFile(__dirname + "/duels/script.js");
       break;
+
+    case "/roll":
+      res.sendFile(__dirname + "/roll/index.html");
+      break;
+    case "/roll/script.js":
+      res.sendFile(__dirname + "/roll/script.js");
+      break;
     case "/offlinescript.js":
       res.sendFile(__dirname + "/offlinescript/offline.js");
       break;
@@ -375,7 +383,7 @@ app.post("/*", (req: any, res: any) => {
         },
         1000 * 60 * 2,
       );
-      SAVE_DATA(DATAOBJ,DEVMODE,DATABASE_BACKUP_URL);
+      SAVE_DATA(DATAOBJ, DEVMODE, DATABASE_BACKUP_URL);
       //send msg
       for (const onlineid in connections) {
         if (connections[onlineid]) {
@@ -431,9 +439,9 @@ function admin(req: any, res: any): void {
           res.send("ID invalid");
           break;
         }
-        if(isNaN(parseInt(req.body.value))){
-          res.send("Value is NaN")
-          break
+        if (isNaN(parseInt(req.body.value))) {
+          res.send("Value is NaN");
+          break;
         }
         if (userob) {
           const connectionsocketidarray = connections[req.body.id];
@@ -461,7 +469,6 @@ function admin(req: any, res: any): void {
         }
         break;
       case "changename":
-        
         if (userob) {
           const connectionsocketidarray = connections[req.body.id];
           if (!Object.keys(DATAOBJ.users).includes(req.body.id)) {
@@ -480,9 +487,9 @@ function admin(req: any, res: any): void {
         }
         break;
       case "setcow":
-        if(isNaN(parseInt(req.body.value))){
-          res.send("Value is NaN")
-          break
+        if (isNaN(parseInt(req.body.value))) {
+          res.send("Value is NaN");
+          break;
         }
         if (userob) {
           const connectionsocketidarray = connections[req.body.id];
@@ -584,7 +591,7 @@ function getLb(inc: boolean): object[] {
     //console.log(obj[userarray])
     let userob = {
       id: userarray,
-      cows: obj[userarray]?.cows || -1,
+      cows: obj[userarray]?.cows || 0,
       name: obj[userarray]?.name || "cowcontributor",
 
       online: Object.keys(connections).includes(userarray),
@@ -620,6 +627,59 @@ function socketSetup(): void {
     // Send initial content to the client when connected
     let connection_client_id: string;
     let duelpage: boolean = false;
+    socket.on("roll", (data: any) => {
+      if (data.init) {
+        if (data.init.id) {
+          const userob = DATAOBJ.users[data.init.id];
+          if (userob) {
+            if (userob.cows > 0) {
+              socket.emit("data", { cows: userob.cows, name: userob.name });
+            }
+            return;
+          } else {
+            socket.emit("terminate", "No id, please contribute cows");
+            return;
+          }
+        } else {
+          socket.emit("terminate", "No id, please contribute cows");
+          return;
+        }
+        return;
+      }
+      let id = data.id;
+      let stakes = data.stakes;
+      if (![1000,2000,5000,10000].includes(stakes)){
+        stakes = 1000
+      }
+      if (id) {
+        const userob = DATAOBJ.users[id];
+        if (userob) {
+          if (userob.cows >= stakes) {
+            let { multi, value } = rollstakes();
+            let changeincows = multi * stakes - stakes;
+
+            DATAOBJ.clicks += changeincows;
+            userob.cows += changeincows;
+            socket.emit("roll", {
+              multi,
+              value,
+              stakes,
+              cows: userob.cows,
+              name: userob.name,
+              id: id,
+            });
+
+            return;
+          } else {
+            socket.emit("roll", { notenough: true });
+            return;
+          }
+        }
+      } else {
+        socket.emit("roll", { noacc: true });
+        return;
+      }
+    });
     socket.on(
       "duelrequest",
       (data: {
@@ -953,7 +1013,7 @@ function socketSetup(): void {
       }
     });
     socket.on("changeusername", (data: { name: string }) => {
-      let newuser = data.name;
+      let newuser = truncateString(data.name,30);
       if (newuser) {
         if (connection_client_id) {
           let userob = DATAOBJ.users[connection_client_id];
@@ -1177,10 +1237,39 @@ function socketSetup(): void {
   });
 }
 
+//function to truncateString for username changes
+function truncateString(str:string, num:number) {
+  if (str.length > num) {
+    return str.slice(0, num)
+  } else {
+    return str;
+  }
+}
+
 //using node-crypto to ensure no time specific rng abnormalities
 function random(): number {
   const crypto = require("crypto");
   return crypto.randomBytes(4).readUInt32LE() / 0xffffffff;
+}
+
+//For /roll site
+function rollstakes(): { multi: number; value: number } {
+  let rollednum = Math.floor(random() * 100);
+  if (rollednum < 5) {
+    return { multi: 0, value: rollednum };
+  } else if (rollednum < 15) {
+    return { multi: 0.1, value: rollednum };
+  } else if (rollednum < 30) {
+    return { multi: 0.2, value: rollednum };
+  } else if (rollednum < 70) {
+    return { multi: 1.1, value: rollednum };
+  } else if (rollednum < 85) {
+    return { multi: 1.5, value: rollednum };
+  } else if (rollednum < 95) {
+    return { multi: 2, value: rollednum };
+  } else {
+    return { multi: 3, value: rollednum };
+  }
 }
 
 //rolling, intergrated soon...
@@ -1327,11 +1416,14 @@ function clearEmpt(): void {
       ) {
         tobedeleted.push(id);
       }
+    } else {
+      tobedeleted.push(id);
     }
   }
-  for (const index in tobedeleted) {
-    if (tobedeleted[index]) {
-      delete DATAOBJ.users[tobedeleted[index]];
+  for (let index = 0; index < tobedeleted.length; index++) {
+    const idtobedeleted = tobedeleted[index];
+    if (idtobedeleted) {
+      delete DATAOBJ.users[idtobedeleted];
     }
   }
 }
@@ -1435,6 +1527,7 @@ function ytapi(req: any, res: any): void {
   }
 }
 
+//global broadcast of uuids to duel page
 function broadcastUUID(): void {
   let data = onlinetoduel;
   let newdata: string[] = [];
@@ -1519,5 +1612,7 @@ if (!DEVMODE && EXTERNAL_URL) {
 }
 
 setTimeout(mainentry, 1000);
-setInterval(()=>{SAVE_DATA(DATAOBJ,DEVMODE,DATABASE_BACKUP_URL)}, 30 * 1000);
+setInterval(() => {
+  SAVE_DATA(DATAOBJ, DEVMODE, DATABASE_BACKUP_URL);
+}, 30 * 1000);
 setInterval(broadcastUUID, 5000);
