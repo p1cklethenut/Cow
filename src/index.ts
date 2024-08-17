@@ -40,7 +40,7 @@ app.use(
 );
 
 let updating = false;
-
+const RollOutUnixTime: number = 1729008000000; //time to stop letting clients without a hash to get one.
 let connections: mainpageconnections = {}; //to track and update clients
 let devlog: string = "Cowtube";
 
@@ -620,6 +620,12 @@ function getskinsvalue(userskins: { [key: string]: any }): number {
   return value;
 }
 
+// Function to create a hash
+function createHash(userId: string, secret: string) {
+  const crypto = require("crypto");
+  return crypto.createHmac("sha256", secret).update(userId).digest("hex");
+}
+
 //setting up socket connection
 function socketSetup(): void {
   io.on("connection", (socket: any) => {
@@ -627,17 +633,48 @@ function socketSetup(): void {
     // Send initial content to the client when connected
     let connection_client_id: string;
     let duelpage: boolean = false;
+    socket.on("loginacc", (data: { socketid: string }) => {
+      const socketidtarget = data.socketid;
+      if (socketidtarget) {
+        for (const onlineid in connections) {
+          const arrayofsocketids = connections[onlineid];
+          if (arrayofsocketids) {
+            if (arrayofsocketids.includes(socketidtarget)) {
+              const usercows = DATAOBJ.users[onlineid]?.cows;
+              if (usercows) {
+                socket.emit("loginacc", {
+                  id: onlineid,
+                  cows: usercows,
+                  hash: createHash(onlineid, ACCESS_TOKEN),
+                });
+                return;
+              }
+            }
+          }
+        }
+      }
+      socket.emit("loginacc", { invalidid: true });
+      return;
+    });
     socket.on("roll", (data: any) => {
       if (data.init) {
         if (data.init.id) {
-          const userob = DATAOBJ.users[data.init.id];
-          if (userob) {
-            if (userob.cows > 0) {
-              socket.emit("data", { cows: userob.cows, name: userob.name });
+          if (data.init.hash === createHash(data.init.id, ACCESS_TOKEN)) {
+            const userob = DATAOBJ.users[data.init.id];
+            if (userob) {
+              if (userob.cows > 0) {
+                socket.emit("data", { cows: userob.cows, name: userob.name });
+              }
+              return;
+            } else {
+              socket.emit("terminate", "No id, please contribute cows");
+              return;
             }
-            return;
           } else {
-            socket.emit("terminate", "No id, please contribute cows");
+            socket.emit(
+              "terminate",
+              "Account is not validated, try again in a few seconds.",
+            );
             return;
           }
         } else {
@@ -646,10 +683,18 @@ function socketSetup(): void {
         }
         return;
       }
+      let hash = data.hash;
       let id = data.id;
       let stakes = data.stakes;
-      if (![1000,2000,5000,10000].includes(stakes)){
-        stakes = 1000
+      if (!(hash === createHash(id, ACCESS_TOKEN))) {
+        socket.emit(
+          "terminate",
+          "Account is not validated, try again in a few seconds.",
+        );
+        return;
+      }
+      if (![1000, 2000, 5000, 10000].includes(stakes)) {
+        stakes = 1000;
       }
       if (id) {
         const userob = DATAOBJ.users[id];
@@ -702,7 +747,7 @@ function socketSetup(): void {
       },
     );
     let ided: boolean = false;
-    socket.on("duelid", (data: { id: string }) => {
+    socket.on("duelid", (data: { id: string; hash: string }) => {
       if (ided) {
         return;
       }
@@ -711,15 +756,23 @@ function socketSetup(): void {
           "terminate",
           "Id invalid, please contribute at least one cow before dueling",
         );
+        return;
+      } else if (
+        DATAOBJ.users[data.id]?.cows == 0 &&
+        Object.keys(DATAOBJ.users[data.id]?.skins || {}).length == 0
+      ) {
+        io.to(socket_client_id).emit(
+          "terminate",
+          "Id invalid, please contribute at least one cow before dueling",
+        );
+        return;
       } else {
-        if (
-          DATAOBJ.users[data.id]?.cows == 0 &&
-          Object.keys(DATAOBJ.users[data.id]?.skins || {}).length == 0
-        ) {
+        if (!(data.hash === createHash(data.id, ACCESS_TOKEN))) {
           io.to(socket_client_id).emit(
             "terminate",
-            "Id invalid, please contribute at least one cow before dueling",
+            "Account is not validated, try again in a few seconds.",
           );
+          return;
         }
       }
       //console.log(onlinetoduel[data.id]);
@@ -730,6 +783,7 @@ function socketSetup(): void {
           "terminate",
           "duelpage was opened on new tab, only one tab per user is allowed for consistancy",
         );
+        return;
       } else {
         //console.log("no current window")
       }
@@ -1013,7 +1067,7 @@ function socketSetup(): void {
       }
     });
     socket.on("changeusername", (data: { name: string }) => {
-      let newuser = truncateString(data.name,30);
+      let newuser = truncateString(data.name, 30);
       if (newuser) {
         if (connection_client_id) {
           let userob = DATAOBJ.users[connection_client_id];
@@ -1076,9 +1130,11 @@ function socketSetup(): void {
         }
       }
     });
-    socket.on("id", (data: string) => {
+    socket.on("id", (data: any) => {
       //console.log("ided:"+data);
-      let id: string = data;
+
+      let id: string = data.id;
+      let hash: string = data.hash;
       if (DATAOBJ.users[id] === undefined && id) {
         DATAOBJ.users[id] = { name: "cowcontributer", cows: 0, skins: {} };
         //console.log("created: "+id)
@@ -1093,7 +1149,29 @@ function socketSetup(): void {
           }
           DATAOBJ.users[id] = { name: "cowcontributer", cows: 0, skins: {} };
         }
+      } else {
+        if (!(hash === createHash(id, ACCESS_TOKEN))) {
+          if (Date.now() < RollOutUnixTime) {
+            //there is a account, roll out period is not over, so we are not creating a new account
+          } else {
+            if (!Object.keys(DATAOBJ.users).includes(id)) {
+              let isdupe: boolean = true;
+              while (isdupe) {
+                id = Math.floor(10000000 + random() * 90000000).toString();
+                if (!Object.keys(DATAOBJ.users).includes(id)) {
+                  isdupe = false;
+                }
+              }
+              DATAOBJ.users[id] = {
+                name: "cowcontributer",
+                cows: 0,
+                skins: {},
+              };
+            }
+          }
+        }
       }
+      hash = createHash(id, ACCESS_TOKEN);
       let total: number = DATAOBJ.clicks;
       let self: number = DATAOBJ.users[id]?.cows || 0;
       io.to(socket_client_id).emit("number", {
@@ -1101,6 +1179,7 @@ function socketSetup(): void {
         self: self,
         id: id,
         name: DATAOBJ.users[id]?.name,
+        hash: hash,
       });
       let leaderboardpos: number = getPlacement(id, DATAOBJ.users);
       io.to(socket_client_id).emit("leaderboard", {
@@ -1126,7 +1205,7 @@ function socketSetup(): void {
         }
       }
 
-      io.to(socket_client_id).emit("skinupdate", {
+      socket.emit("skinupdate", {
         skins: DATAOBJ.users[connection_client_id]?.skins,
         allskins: skins,
       });
@@ -1138,6 +1217,10 @@ function socketSetup(): void {
     socket.on("claimdrop", (data: any) => {
       let id: string = data.id;
       let toclaim: number = data.toclaim;
+      let hash: string = data.hash;
+      if (!(hash === createHash(id, ACCESS_TOKEN))) {
+        return;
+      }
       if (DATAOBJ.users[id] && typeof toclaim == "number") {
         //console.log(data)
         DATAOBJ.users[id].cows += toclaim;
@@ -1151,11 +1234,12 @@ function socketSetup(): void {
         self: self,
         id: id,
         name: DATAOBJ.users[id]?.name,
+        hash: hash,
       });
     });
     socket.on(
       "clicked",
-      (data: { vers: string; id: string; clicks: number }) => {
+      (data: { vers: string; id: string; clicks: number; hash: string }) => {
         if (data.vers) {
           if (data.vers != VERSION) {
             io.to(socket_client_id).emit(
@@ -1172,9 +1256,12 @@ function socketSetup(): void {
         //console.log("clicked: "+JSON.stringify(data));
         let id: string = data.id;
         let clicks: number = data.clicks;
-
+        let hash: string = data.hash;
         // Ensure id is unique
-        if (!Object.keys(DATAOBJ.users).includes(id)) {
+        if (
+          !Object.keys(DATAOBJ.users).includes(id) ||
+          !(hash === createHash(id, ACCESS_TOKEN))
+        ) {
           let isdupe: boolean = true;
           while (isdupe) {
             id = Math.floor(10000000 + random() * 90000000).toString();
@@ -1194,10 +1281,8 @@ function socketSetup(): void {
 
         let total: number = DATAOBJ.clicks;
         let self: number = user?.cows || 0;
-        if (!connections[id]) {
-          return;
-        }
 
+        hash = createHash(id, ACCESS_TOKEN);
         const connectionsocketidarray = connections[id];
         if (connectionsocketidarray) {
           for (let i = 0; i < connectionsocketidarray.length; i++) {
@@ -1207,6 +1292,7 @@ function socketSetup(): void {
                 total: total,
                 self: self,
                 id: id,
+                hash: hash,
               });
             }
           }
@@ -1238,9 +1324,9 @@ function socketSetup(): void {
 }
 
 //function to truncateString for username changes
-function truncateString(str:string, num:number) {
+function truncateString(str: string, num: number) {
   if (str.length > num) {
-    return str.slice(0, num)
+    return str.slice(0, num);
   } else {
     return str;
   }

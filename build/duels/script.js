@@ -93,7 +93,7 @@ socket.on("connect", () => {
     alert("please contribute cows before dueling");
     window.location.href = "/";
   }
-  socket.emit("duelid", { id: getId() });
+  socket.emit("duelid", { id: getId() ,hash:localStorage.getItem("hash")});
 });
 
 socket.on("terminate", async (reason) => {

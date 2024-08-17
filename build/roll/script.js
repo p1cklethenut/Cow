@@ -1,7 +1,7 @@
 const socket = io()
 let id;
 socket.on("connect",()=>{
-socket.emit("roll",{init:{id:getId()}})
+socket.emit("roll",{init:{id:getId(),hash:localStorage.getItem("hash")}})
 })
 socket.on("terminate",(msg)=>{
     alert(msg);
@@ -78,7 +78,7 @@ function rollextra() {
       }
   }
 function clicked(){
-    socket.emit("roll",{id:id||getId(),stakes: parseInt(document.getElementById("stake").innerHTML || "1000")})
+    socket.emit("roll",{id:id||getId(),stakes: parseInt(document.getElementById("stake").innerHTML || "1000"),hash:localStorage.getItem("hash")})
     document.getElementById("startbtn").disabled = true;
 }
 
