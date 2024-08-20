@@ -1345,9 +1345,9 @@ function rollstakes(): { multi: number; value: number } {
     return { multi: 0, value: rollednum };
   } else if (rollednum < 15) {
     return { multi: 0.1, value: rollednum };
-  } else if (rollednum < 30) {
+  } else if (rollednum < 33) {
     return { multi: 0.2, value: rollednum };
-  } else if (rollednum < 70) {
+  } else if (rollednum < 77) {
     return { multi: 1.1, value: rollednum };
   } else if (rollednum < 85) {
     return { multi: 1.5, value: rollednum };

@@ -47,9 +47,9 @@ function getColor(multi) {
         return "rgba(255,20,20,0.6)";
     } else if (multi < 15) {
         return "rgba(200,40,40,0.6)";
-    } else if (multi < 30) {
+    } else if (multi < 33) {
         return "rgba(70,0,0,0.6)";
-    } else if (multi < 70) {
+    } else if (multi < 77) {
         return "rgba(0,240,0,0.6)";
     } else if (multi < 85) {
         return "rgba(0,200,255,0.6)";
@@ -65,9 +65,9 @@ function rollextra() {
         return { multi: 0, value: rollednum };
       } else if (rollednum < 15) {
         return { multi: 0.1, value: rollednum };
-      } else if (rollednum < 30) {
+      } else if (rollednum < 33) {
         return { multi: 0.2, value: rollednum };
-      } else if (rollednum < 70) {
+      } else if (rollednum < 77) {
         return { multi: 1.1, value: rollednum };
       } else if (rollednum < 85) {
         return { multi: 1.5, value: rollednum };
