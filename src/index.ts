@@ -1462,13 +1462,27 @@ function getPlacement(id: string, users: any): number {
   //console.log(0)
   return 0;
 }
-
+function reCalcTotal() {
+  const datausers = DATAOBJ.users;
+  if (datausers) {
+    let total = 0;
+    for (const id in datausers) {
+      const usercows = datausers[id]?.cows;
+      if (usercows) {
+        total += usercows;
+      }
+    }
+    if (isNaN(total)) {
+      console.log("Total is NAN: ", total);
+    } else {
+      DATAOBJ.clicks = total;
+    }
+  }
+}
 //Function to update Total cow count globally (setInterval(this))
 function updateTotalGlobal(): void {
   clearEmpt();
-  if (Object.keys(connections).length == 0) {
-    return;
-  }
+  reCalcTotal();
 
   const totalclicks = DATAOBJ.clicks;
   io.emit("total", { total: totalclicks });
@@ -1480,8 +1494,9 @@ function updateTotalGlobal(): void {
       .then((text) => {
         if (devlog != text) {
           devlog = text;
-          io.emit("devlog", devlog);
         }
+        io.emit("devlog", devlog);
+        //console.log("sent devlog");
       })
       .catch((error) => {
         console.log(`devlog fetching error: ${error}`);

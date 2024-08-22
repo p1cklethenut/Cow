@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file. This log is
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to the principles of [Semantic Versioning](https://semver.org/spec/v2.0.0.html), ensuring that version numbers convey meaningful information about the state of the project.
 
+## [2.3.0] - 2024-08-22
+
+**This is a stable version.**
+
+### Added
+- **Added devlogs to all pages**: As to make displaying important information easier.
+
 ## [2.2.1] - 2024-08-20
 
 **This is a stable version.**

@@ -81,7 +81,10 @@ function clicked(){
     socket.emit("roll",{id:id||getId(),stakes: parseInt(document.getElementById("stake").innerHTML || "1000"),hash:localStorage.getItem("hash")})
     document.getElementById("startbtn").disabled = true;
 }
-
+socket.on("devlog", (text) => {
+  console.log(text);
+  document.getElementById('devlog').innerHTML = text;
+});
 socket.on("roll",(data)=>startRolling(data))
 async function startRolling(result) {
 

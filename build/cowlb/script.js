@@ -118,7 +118,10 @@ const copyid = async (id) => {
     console.error('Failed to copy: ', err);
   }
 }
-
+socket.on("devlog", (text) => {
+  console.log(text);
+  document.getElementById('devlog').innerHTML = text;
+});
 
 window.onload = ()=>{
   setInterval(getLb, 5000);

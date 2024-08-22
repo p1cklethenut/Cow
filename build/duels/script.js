@@ -20,6 +20,10 @@ let youclick = 0;
 let enemyclick = 0;
 let induel = false;
 
+socket.on("devlog", (text) => {
+  console.log(text);
+  document.getElementById('devlog').innerHTML = text;
+});
 function autoclickcheck() {
   if (clickintervalarray.length != 10) {
     console.log("First clicks");
