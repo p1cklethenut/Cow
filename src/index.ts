@@ -228,20 +228,21 @@ app.get("/*", (req: any, res: any) => {
 
     let id = req.url.slice(9);
     let htmlfile = String(fs.readFileSync(__dirname + "/profile/index.html"));
-    if (DATAOBJ.users[id]) {
-      if (!Object.keys(DATAOBJ.users[id]).includes("skins")) {
-        DATAOBJ.users[id].skins = {};
+    const userob =DATAOBJ.users[id] 
+    if (userob) {
+      if (!Object.keys(DATAOBJ.users[id]||{}).includes("skins")) {
+        userob.skins = {};
       }
-      let tcv = getskinsvalue(DATAOBJ.users[id].skins);
+      let tcv = getskinsvalue(userob.skins);
       res.send(
         htmlfile
-          .replace(/\{skinsowned\}/g, displayskins(DATAOBJ.users[id].skins))
+          .replace(/\{skinsowned\}/g, displayskins(userob.skins))
           .replace(/\{uuid\}/g, id)
-          .replace(/\{username\}/g, DATAOBJ.users[id].name)
-          .replace(/\{tc\}/g, DATAOBJ.users[id].cows.toString())
+          .replace(/\{username\}/g, userob.name)
+          .replace(/\{tc\}/g, userob.cows.toString())
           .replace(/\{lp\}/g, getPlacement(id, DATAOBJ.users).toString())
           .replace(/\{sv\}/g, tcv.toString())
-          .replace(/\{tcv\}/g, (DATAOBJ.users[id].cows + tcv).toString()),
+          .replace(/\{tcv\}/g, (userob.cows + tcv).toString()),
       );
     }
     return;
@@ -386,9 +387,10 @@ app.post("/*", (req: any, res: any) => {
       SAVE_DATA(DATAOBJ, DEVMODE, DATABASE_BACKUP_URL);
       //send msg
       for (const onlineid in connections) {
-        if (connections[onlineid]) {
-          for (let i = 0; i < connections[onlineid].length; i++) {
-            io.to(connections[onlineid][i]).emit(
+        const connection = connections[onlineid]
+        if (connection) {
+          for (let i = 0; i < connection.length; i++) {
+            io.to(connection[i]).emit(
               "msg",
               "Updating cowtube, please wait a few seconds...",
             );
@@ -633,6 +635,16 @@ function socketSetup(): void {
     // Send initial content to the client when connected
     let connection_client_id: string;
     let duelpage: boolean = false;
+    socket.devlog = devlog;
+    socket.emit("devlog",devlog)
+    setInterval( ()=>{if(socket.devlog !==devlog){
+
+      socket.emit("devlog",devlog)
+    socket.devlog = devlog;
+
+           }},100)
+
+   
     socket.on("loginacc", (data: { socketid: string }) => {
       const socketidtarget = data.socketid;
       if (socketidtarget) {
@@ -656,15 +668,15 @@ function socketSetup(): void {
       socket.emit("loginacc", { invalidid: true });
       return;
     });
-    socket.on("roll", (data: any) => {
+    socket.on("roll", (data: any,callback:Function) => {
       if (data.init) {
         if (data.init.id) {
           if (data.init.hash === createHash(data.init.id, ACCESS_TOKEN)) {
             const userob = DATAOBJ.users[data.init.id];
             if (userob) {
               if (userob.cows > 0) {
-                socket.emit("data", { cows: userob.cows, name: userob.name });
-              }
+                socket.emit("data",({ cows: userob.cows, name: userob.name })
+    )}
               return;
             } else {
               socket.emit("terminate", "No id, please contribute cows");
@@ -705,7 +717,7 @@ function socketSetup(): void {
 
             DATAOBJ.clicks += changeincows;
             userob.cows += changeincows;
-            socket.emit("roll", {
+            callback( {
               multi,
               value,
               stakes,
@@ -716,7 +728,7 @@ function socketSetup(): void {
 
             return;
           } else {
-            socket.emit("roll", { notenough: true });
+            callback({ notenough: true });
             return;
           }
         }
@@ -736,8 +748,9 @@ function socketSetup(): void {
         let idtobereq: string = data.id;
         //console.log(data);
         //console.log(JSON.stringify(onlinetoduel));
-        if (onlinetoduel[idtobereq]) {
-          io.to(onlinetoduel[idtobereq].socketid).emit("duelrequest", {
+        const useronlinetoduelreqob = onlinetoduel[idtobereq]
+        if (useronlinetoduelreqob) {
+          io.to(useronlinetoduelreqob.socketid).emit("duelrequest", {
             id: connection_client_id,
             stakes: data.stakes,
             acac: data.acac,
@@ -842,7 +855,9 @@ function socketSetup(): void {
               onlinetoduelclientuser.online = false;
               let starton: number = Date.now() + 3000;
               let endon: number = starton + 10 * 1000;
-              io.to(onlinetoduel[requesterid].socketid).emit("startduel", {
+              const useronlinetoduelreqob = onlinetoduel[requesterid]
+              if(useronlinetoduelreqob){
+              io.to(useronlinetoduelreqob.socketid).emit("startduel", {
                 enemyname:
                   DATAOBJ.users[connection_client_id]?.name || "cowcontributor",
                 enemyid: connection_client_id,
@@ -871,7 +886,7 @@ function socketSetup(): void {
                 player1: { clicks: 0, socketid: socket_client_id },
                 player2: {
                   clicks: 0,
-                  socketid: onlinetoduel[requesterid].socketid,
+                  socketid: onlinetoduelrequser.socketid,
                 },
               };
               setTimeout(() => {
@@ -887,8 +902,8 @@ function socketSetup(): void {
                 }
                 if (duels[thisduelid]?.player1 && duels[thisduelid]?.player2) {
                   if (
-                    duels[thisduelid]?.player1?.clicks >
-                    duels[thisduelid]?.player2?.clicks
+                    (duels[thisduelid]?.player1?.clicks||0) >(
+                    duels[thisduelid]?.player2?.clicks||0)
                   ) {
                     player1reward = reward;
                     player2reward = -1 * reward;
@@ -911,8 +926,8 @@ function socketSetup(): void {
                   if (reqsok) {
                     io.to(reqsok).emit("duelend", {
                       win:
-                        duels[thisduelid]?.player1.clicks <
-                        duels[thisduelid]?.player2.clicks,
+                        (duels[thisduelid]?.player1?.clicks||0) <
+                        (duels[thisduelid]?.player2?.clicks||0),
                       youclick: duels[thisduelid]?.player2.clicks,
                       enemyclick: duels[thisduelid]?.player1.clicks,
                       reward: player2reward,
@@ -922,8 +937,8 @@ function socketSetup(): void {
                   if (consok) {
                     io.to(consok).emit("duelend", {
                       win:
-                        duels[thisduelid]?.player1.clicks >
-                        duels[thisduelid]?.player2.clicks,
+                        (duels[thisduelid]?.player1?.clicks||0) >
+                        (duels[thisduelid]?.player2?.clicks||0),
                       youclick: duels[thisduelid]?.player1.clicks,
                       enemyclick: duels[thisduelid]?.player2.clicks,
                       reward: player1reward,
@@ -932,12 +947,13 @@ function socketSetup(): void {
                 }
                 if (duels[thisduelid]) {
                   if (
-                    duels[thisduelid]?.player1.clicks >
-                    duels[thisduelid]?.player2.clicks
+                    (duels[thisduelid]?.player1?.clicks||0) >
+                    (duels[thisduelid]?.player2?.clicks||0)
                   ) {
                     for (const id in onlinetoduel) {
-                      if (onlinetoduel[id]?.socketid) {
-                        io.to(onlinetoduel[id].socketid).emit(
+                      const onlinetodueluser = onlinetoduel[id]
+                      if (onlinetoduel?.socketid) {
+                        io.to(onlinetoduel.socketid).emit(
                           "duelannounce",
                           `User ${connection_client_id} won User ${requesterid} in a duel!`,
                         );
@@ -950,12 +966,13 @@ function socketSetup(): void {
                       name: "system",
                     });
                   } else if (
-                    duels[thisduelid]?.player1.clicks <
-                    duels[thisduelid]?.player2.clicks
+                    (duels[thisduelid]?.player1?.clicks||0) <
+                    (duels[thisduelid]?.player2?.clicks||0)
                   ) {
                     for (const id in onlinetoduel) {
-                      if (onlinetoduel[id]?.socketid) {
-                        io.to(onlinetoduel[id].socketid).emit(
+                      const onlinetodueluser = onlinetoduel[id];
+                      if (onlinetodueluser?.socketid) {
+                        io.to(onlinetodueluser.socketid).emit(
                           "duelannounce",
                           `User ${requesterid} won User ${connection_client_id} in a duel!`,
                         );
@@ -970,8 +987,9 @@ function socketSetup(): void {
                     });
                   } else {
                     for (const id in onlinetoduel) {
-                      if (onlinetoduel[id]?.socketid) {
-                        io.to(onlinetoduel[id].socketid).emit(
+                      const onlinetodueluser = onlinetoduel[id]
+                      if (onlinetodueluser?.socketid) {
+                        io.to(onlinetodueluser.socketid).emit(
                           "duelannounce",
                           `User ${requesterid} and User ${connection_client_id} tied in a duel!`,
                         );
@@ -1000,7 +1018,7 @@ function socketSetup(): void {
                   onlinetoduelclientuser.online = true;
                 }
               }, endon - Date.now());
-            }
+            }}
           }
         }
       },
@@ -1014,16 +1032,17 @@ function socketSetup(): void {
       }
       const thisduelid = duelids[connection_client_id];
       if (thisduelid) {
-        if (duels[thisduelid]) {
+        const duel = duels[thisduelid] 
+        if (duel) {
           if (
             duels[thisduelid]?.player1.socketid ==
             onlinetoduel[connection_client_id]?.socketid
           ) {
-            duels[thisduelid].player1.clicks += 1;
-            io.to(duels[thisduelid].player2.socketid).emit("enemyduelclick");
+            duel.player1.clicks += 1;
+            io.to(duel.player2.socketid).emit("enemyduelclick");
           } else {
-            duels[thisduelid].player2.clicks += 1;
-            io.to(duels[thisduelid].player1.socketid).emit("enemyduelclick");
+            duel.player2.clicks += 1;
+            io.to(duel.player1.socketid).emit("enemyduelclick");
           }
         }
       }
@@ -1044,11 +1063,12 @@ function socketSetup(): void {
         }
         if (!userob.skins[skinid]) {
           //should be false?
-          if (skins[skinid]) {
-            if (userob.cows >= skins[skinid].cost) {
+          const skin = skins[skinid]
+          if (skin) {
+            if (userob.cows >= skin.cost) {
               userob.skins[skinid] = true;
-              userob.cows -= skins[skinid].cost;
-              DATAOBJ.clicks -= skins[skinid].cost;
+              userob.cows -= skin.cost;
+              DATAOBJ.clicks -= skin.cost;
               io.to(socket_client_id).emit("skinupdate", {
                 skins: userob.skins,
                 allskins: skins,
@@ -1220,20 +1240,20 @@ function socketSetup(): void {
       let hash: string = data.hash;
       if (!(hash === createHash(id, ACCESS_TOKEN))) {
         return;
-      }
-      if (DATAOBJ.users[id] && typeof toclaim == "number") {
+      }const userob = DATAOBJ.users[id]
+      if (userob && typeof toclaim == "number") {
         //console.log(data)
-        DATAOBJ.users[id].cows += toclaim;
+        userob.cows += toclaim;
         DATAOBJ.clicks += toclaim;
       }
 
       let total: number = DATAOBJ.clicks;
-      let self: number = DATAOBJ.users[id]?.cows || 0;
+      let self: number = userob?.cows || 0;
       io.to(socket_client_id).emit("number", {
         total: total,
         self: self,
         id: id,
-        name: DATAOBJ.users[id]?.name,
+        name: userob?.name,
         hash: hash,
       });
     });
@@ -1257,12 +1277,13 @@ function socketSetup(): void {
         let id: string = data.id;
         let clicks: number = data.clicks;
         let hash: string = data.hash;
+        const userob = DATAOBJ.users[id]
         // Ensure id is unique
         if (
           !Object.keys(DATAOBJ.users).includes(id) ||
           !(hash === createHash(id, ACCESS_TOKEN))
         ) {
-          let isdupe: boolean = true;
+          let isdupe: Boolean = true;
           while (isdupe) {
             id = Math.floor(10000000 + random() * 90000000).toString();
             if (!Object.keys(DATAOBJ.users).includes(id)) {
@@ -1273,14 +1294,13 @@ function socketSetup(): void {
         }
 
         // Ensure the user object exists before updating
-        const user = DATAOBJ.users[id];
-        if (user) {
+        if (userob) {
           DATAOBJ.clicks += clicks;
-          user.cows += clicks;
+          userob.cows += clicks;
         }
 
         let total: number = DATAOBJ.clicks;
-        let self: number = user?.cows || 0;
+        let self: number = userob?.cows || 0;
 
         hash = createHash(id, ACCESS_TOKEN);
         const connectionsocketidarray = connections[id];
@@ -1494,8 +1514,8 @@ function updateTotalGlobal(): void {
       .then((text) => {
         if (devlog != text) {
           devlog = text;
+          io.emit("devlog", devlog);
         }
-        io.emit("devlog", devlog);
         //console.log("sent devlog");
       })
       .catch((error) => {
@@ -1509,11 +1529,13 @@ function clearEmpt(): void {
   let data = DATAOBJ.users;
   let tobedeleted: string[] = [];
   for (const id in data) {
-    if (data[id]) {
+    const userob = data[id];
+
+    if (userob) {
       if (
-        data[id].cows == 0 &&
+        userob.cows == 0 &&
         !Object.keys(connections).includes(id) &&
-        Object.keys(data[id].skins).length == 0
+        Object.keys(userob.skins).length == 0
       ) {
         tobedeleted.push(id);
       }
@@ -1634,7 +1656,7 @@ function broadcastUUID(): void {
   let newdata: string[] = [];
 
   for (let onlinerid in data) {
-    if (data[onlinerid] && data[onlinerid].online) {
+    if (data[onlinerid] && data[onlinerid]?.online) {
       newdata.push(onlinerid);
     }
   }
