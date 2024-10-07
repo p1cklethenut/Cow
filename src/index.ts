@@ -1737,5 +1737,5 @@ if (!DEVMODE && EXTERNAL_URL) {
 setTimeout(mainentry, 1000);
 setInterval(() => {
   SAVE_DATA(DATAOBJ, DEVMODE, DATABASE_BACKUP_URL);
-}, 5 * 60 * 1000);
+}, 60 * 60 * 1000);
 setInterval(broadcastUUID, 5000);
