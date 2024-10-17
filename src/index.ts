@@ -1733,9 +1733,12 @@ if (!DEVMODE && EXTERNAL_URL) {
     }
   });
 }
-
+let lastsaveobj = JSON.parse(JSON.stringify(DATAOBJ));
 setTimeout(mainentry, 1000);
 setInterval(() => {
-  SAVE_DATA(DATAOBJ, DEVMODE, DATABASE_BACKUP_URL);
+  if(JSON.stringify(lastsaveobj)!==JSON.stringify(DATAOBJ)){
+    lastsaveobj = JSON.parse(JSON.stringify(DATAOBJ))
+    SAVE_DATA(DATAOBJ, DEVMODE, DATABASE_BACKUP_URL);
+  }
 }, 60 * 60 * 1000);
 setInterval(broadcastUUID, 5000);
