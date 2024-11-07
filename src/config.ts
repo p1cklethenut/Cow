@@ -33,7 +33,7 @@ const config = {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({url: process.env.EXTERNAL_URL+"/getdata"}),
     })
       .then((response) => {
         //console.log("Server Data Backed up.")

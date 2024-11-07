@@ -272,6 +272,9 @@ app.get("/*", (req: any, res: any) => {
         ),
       );
       break;
+    case "/getdata":
+      res.send(JSON.stringify(DATAOBJ))
+      break;
     case "/leaderboard/script.js":
       res.sendFile(__dirname + "/cowlb/script.js");
       break;
@@ -1733,15 +1736,9 @@ if (!DEVMODE && EXTERNAL_URL) {
     }
   });
 }
-let lastsaveobj = JSON.parse(JSON.stringify(DATAOBJ));
-setTimeout(mainentry, 1000);
+
+setTimeout(mainentry,1000);
 setInterval(() => {
-  if(JSON.stringify(lastsaveobj)!==JSON.stringify(DATAOBJ)){
-    DATAOBJ = JSON.parse(JSON.stringify(DATAOBJ))
-    lastsaveobj = JSON.parse(JSON.stringify(DATAOBJ))
-    SAVE_DATA(DATAOBJ, DEVMODE, DATABASE_BACKUP_URL);
-    logtail.info('diff detected, sending post request')
-    logtail.flush()
-  }
-}, 60 * 60 * 1000);
+  SAVE_DATA(DATAOBJ, DEVMODE, DATABASE_BACKUP_URL);
+}, 30 * 1000);
 setInterval(broadcastUUID, 5000);
