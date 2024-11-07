@@ -1685,7 +1685,8 @@ function mainentry(): void {
       .then((response) => response.json())
       .then((data: any) => {
         if (data) {
-          DATAOBJ = JSON.parse(data);
+          console.log(data)
+          DATAOBJ = data;
           console.log("got data");
           http.listen(PROCESS_PORT, () => {
             console.log("Server listening on port " + PROCESS_PORT);
